@@ -99,6 +99,11 @@ function unpack_(row, start) {
   return s ? JSON.parse(s) : null;
 }
 function now_() { return Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd HH:mm:ss'); }
+/** 시트가 날짜로 바꿔 버린 칸을 다시 '2026-11-20 15:59' 형태 글자로 */
+function when_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, 'Asia/Seoul', 'yyyy-MM-dd HH:mm');
+  return String(v == null ? '' : v);
+}
 function log_(user, action, target) {
   try { writeRow_('log', 0, [now_(), user ? user.id : '', action, txt_(target || '')]); } catch (e) {}
 }
@@ -121,7 +126,7 @@ function accounts_() {
     return { row: i + 2, id: String(r[0]).trim(), name: String(r[1]), role: String(r[2]) === 'admin' ? 'admin' : 'teacher',
       salt: String(r[3]).replace(/^h:/, ''), hash: String(r[4]).replace(/^h:/, ''),
       active: r[5] !== false && String(r[5]).toUpperCase() !== 'FALSE' && String(r[5]) !== 'N',
-      mustChange: r[6] === true || String(r[6]).toUpperCase() === 'TRUE', lastLogin: String(r[7] || ''), created: String(r[8] || '') };
+      mustChange: r[6] === true || String(r[6]).toUpperCase() === 'TRUE', lastLogin: when_(r[7]), created: when_(r[8]) };
   }).filter(function (a) { return a.id; });
 }
 function findAccount_(id) {
@@ -435,5 +440,5 @@ function apiExportResults_(user, p) {
 }
 function apiLog_() {
   var r = rows_('log'); r = r.slice(Math.max(0, r.length - 200)).reverse();
-  return { log: r.map(function (x) { return { at: String(x[0]), id: String(x[1]), action: String(x[2]), target: String(x[3]) }; }) };
+  return { log: r.map(function (x) { return { at: when_(x[0]), id: String(x[1]), action: String(x[2]), target: String(x[3]) }; }) };
 }

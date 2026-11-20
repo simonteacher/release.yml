@@ -2504,25 +2504,31 @@ var ISU = {
       var t = l.split(/[\s,\t]+/).filter(Boolean), cr = t[2] ? parseInt(String(t[2]).replace(/\D/g,''),10) : 4;
       if (t.length < 2 || !cr) bad.push(l); else items.push({ name: t[0], subject: t[1], credits: cr });
     });
-    if (!items.length) return ISU.toast('한 줄에 ‘이름 과목 학점’을 적어 주세요.');
-    if (bad.length) return ISU.toast('형식이 맞지 않는 줄: ' + bad.join(' / '));
-    if (pw.length < 6) return ISU.toast('처음 비밀번호는 6자 이상이어야 합니다.');
+    var stop = function(m){ log('<b style="color:var(--stamp)">'+esc2(m)+'</b>'); ISU.toast(m); };
+    if (!items.length) return stop('입력칸이 비어 있습니다. 회색 글자는 예시이니, 칸을 눌러 ‘이름 과목 학점’을 한 줄씩 입력하거나 붙여넣으세요.');
+    if (bad.length) return stop('형식이 맞지 않는 줄: ' + bad.join(' / '));
+    if (pw.length < 6) return stop('처음 비밀번호는 6자 이상이어야 합니다.');
     var btn = document.querySelector('#isu-root [data-act=bulkRun]'); if (btn) btn.disabled = true;
-    var have = {}; (ISU.accounts||[]).forEach(function(a){ have[a.id.toLowerCase()] = a; });
+    var findAcc = function(nm){
+      var L = ISU.accounts || [], k = nm.toLowerCase();
+      return L.filter(function(a){ return a.id.toLowerCase() === k; })[0] || L.filter(function(a){ return a.name === nm; })[0] || null;
+    };
+    var lines2 = [];
     var names = []; items.forEach(function(it){ if (names.indexOf(it.name) < 0) names.push(it.name); });
     var made = 0, skipped = 0, errs = [];
     log('계정을 만드는 중… (0/' + names.length + ')');
     names.reduce(function(pr, nm, i){
       return pr.then(function(){
         log('계정을 만드는 중… (' + (i+1) + '/' + names.length + ')');
-        if (have[nm.toLowerCase()]) { skipped++; return; }
-        return SRV.call('saveAccount', { id: nm, name: nm, role: 'teacher', password: pw }).then(function(r){ made++; ISU.accounts = r.accounts; }, function(e){ errs.push(nm + ': ' + (e.message || e.error)); });
+        var ex = findAcc(nm);
+        if (ex) { skipped++; lines2.push(esc2(nm)+': 기존 계정 사용('+esc2(ex.id)+')'); return; }
+        return SRV.call('saveAccount', { id: nm, name: nm, role: 'teacher', password: pw }).then(function(r){ made++; ISU.accounts = r.accounts; lines2.push(esc2(nm)+': 새 계정(아이디 '+esc2(nm)+')'); }, function(e){ errs.push(nm + ': ' + (e.message || e.error)); });
       });
     }, Promise.resolve()).then(function(){
       ISU.syncTeachers();
       var cMade = 0, cSkip = 0;
       items.forEach(function(it){
-        var acc = (ISU.accounts||[]).filter(function(a){ return a.id.toLowerCase() === it.name.toLowerCase(); })[0];
+        var acc = findAcc(it.name);
         if (!acc) return;
         var dup = DB.data.courses.some(function(c){ return c.owner === acc.id && c.subject === it.subject && +c.year === year && String(c.sem) === sem; });
         if (dup) { cSkip++; return; }
@@ -2533,7 +2539,7 @@ var ISU = {
       return DB.flush().then(function(){
         ISU.render();
         var msg = '계정 ' + made + '개 만듦' + (skipped ? ', ' + skipped + '개는 이미 있음' : '') + ' · 과목 ' + cMade + '개 만듦' + (cSkip ? ', ' + cSkip + '개는 이미 있음' : '') + (errs.length ? ' · 실패: ' + errs.join(' / ') : '');
-        ISU.toast(msg); log(msg);
+        ISU.toast(msg); log(esc2(msg) + (lines2.length ? '<br>' + lines2.join(' · ') : '') + (errs.length ? '<br><b style="color:var(--stamp)">실패한 줄이 있습니다. Apps Script에 최신 Code.gs를 붙여넣고 ‘새 버전’으로 배포했는지 확인해 주세요(한글 아이디는 최신 버전부터 됩니다).</b>' : ''));
       });
     });
   },
@@ -2692,8 +2698,8 @@ var ISU = {
     var h = '<div class="isu-head"><div><h2>계정 관리</h2><div class="isu-meta">선생님 계정을 만들고 아이디와 처음 비밀번호를 알려 주세요. 처음 로그인하면 비밀번호를 바꾸게 됩니다.</div></div></div>';
     var nowD = new Date(), defSem = nowD.getMonth() < 7 ? '1' : '2';
     h += '<div class="isu-card"><h3>선생님·과목 한 번에 등록</h3>' +
-      '<p class="isu-hint" style="margin:0 0 10px">한 줄에 <b>이름 과목 학점</b>을 적습니다(예: <code>정효성 공통국어2 4</code>). 이름이 아이디가 되고, 아직 없는 선생님은 계정을 새로 만들며, 그 선생님 과목도 함께 만듭니다. 이미 있는 계정·과목은 건너뜁니다.</p>' +
-      '<textarea data-bulk="text" rows="7" placeholder="정효성 공통국어2 4\n오희원 공통수학2 4"></textarea>' +
+      '<p class="isu-hint" style="margin:0 0 10px">한 줄에 <b>이름 과목 학점</b>을 적습니다(예: <code>홍길동 공통국어2 4</code>). 같은 이름의 계정이 이미 있으면 그 계정에 과목을 배정하고, 없으면 이름을 아이디로 새 계정을 만듭니다. 이미 있는 과목은 건너뜁니다.</p>' +
+      '<textarea data-bulk="text" rows="7" placeholder="예) 홍길동 공통국어2 4\n예) 김선생 공통수학2 4\n(이 글자는 예시입니다. 여기에 직접 입력하거나 붙여넣으세요)"></textarea>' +
       '<div class="isu-form" style="margin-top:10px">' +
       '<label>처음 비밀번호<input data-bulk="pw" value="123456"></label>' +
       '<label>학년도<input type="number" data-bulk="year" value="'+nowD.getFullYear()+'"></label>' +
