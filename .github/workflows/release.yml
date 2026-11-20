@@ -57,7 +57,9 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           mkdir -p build
-          if [ -n "$INPUT_NOTES" ]; then echo "$INPUT_NOTES"; elif [ -n "$COMMIT_MSG" ]; then echo "$COMMIT_MSG"; else echo "기능 개선"; fi > build/release-notes.md
+          if [ -n "$INPUT_NOTES" ]; then echo "$INPUT_NOTES"; elif [ -n "$COMMIT_MSG" ]; then echo "$COMMIT_MSG"; else echo "기능 개선"; fi \
+            | grep -viE '^(co-authored-by|signed-off-by|claude-session):' \
+            | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > build/release-notes.md
           cat build/release-notes.md
 
       - name: 빌드 및 Release 발행
