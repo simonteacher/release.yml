@@ -3,6 +3,15 @@ const path = require('path');
 const fs = require('fs');
 
 const APP_TITLE = '최소 성취수준 보장지도 시스템';
+
+// 학교 웹앱(구글 시트) 주소. config.json의 webappUrl에 Apps Script 웹앱 주소(…/exec)를 넣으면
+// 프로그램이 그 웹앱을 열고, 비어 있으면 이 PC에 저장하는 방식으로 동작합니다.
+let WEBAPP_URL = '';
+try {
+  const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
+  if (/^https:\/\/script\.google\.com\/.+\/exec$/.test(String(cfg.webappUrl || '').trim())) WEBAPP_URL = cfg.webappUrl.trim();
+} catch (e) { /* 설정 파일이 없으면 PC 저장 방식 */ }
+const isGoogle = (u) => /^https:\/\/([a-z0-9-]+\.)*(script\.google\.com|googleusercontent\.com|accounts\.google\.com|docs\.google\.com)(\/|$)/i.test(u);
 const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000; // 켜 둔 상태에서도 4시간마다 확인
 
 let win = null;
@@ -168,7 +177,20 @@ function create() {
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') }
   });
   win.once('ready-to-show', () => { win.maximize(); win.show(); });
-  win.loadFile(path.join(__dirname, 'index.html'));
+  if (WEBAPP_URL) {
+    win.loadURL(WEBAPP_URL);
+    // 인터넷이 끊겼을 때 안내 화면
+    win.webContents.on('did-fail-load', (e, code, desc, url, isMainFrame) => {
+      if (!isMainFrame || code === -3) return;
+      const html = '<meta charset="utf-8"><body style="font-family:Malgun Gothic,sans-serif;display:flex;align-items:center;justify-content:center;height:90vh;background:#f4f5f7;color:#1c2433">' +
+        '<div style="text-align:center;line-height:1.8"><div style="font-size:20px;font-weight:700">학교 서버에 연결하지 못했습니다</div>' +
+        '<div style="color:#667085">인터넷 연결을 확인한 뒤 다시 시도해 주세요.</div>' +
+        '<button onclick="location.href=\'' + WEBAPP_URL + '\'" style="margin-top:14px;padding:10px 20px;border:0;border-radius:8px;background:#5b3d99;color:#fff;font-size:15px;cursor:pointer">다시 시도</button></div></body>';
+      win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+    });
+  } else {
+    win.loadFile(path.join(__dirname, 'index.html'));
+  }
   win.on('page-title-updated', (e) => e.preventDefault());
 
   // 외부 링크는 기본 브라우저로
@@ -177,7 +199,8 @@ function create() {
     return { action: 'deny' };
   });
   win.webContents.on('will-navigate', (e, url) => {
-    if (!url.startsWith('file:')) { e.preventDefault(); if (/^https?:/i.test(url)) shell.openExternal(url); }
+    if (url.startsWith('file:') || url.startsWith('data:') || (WEBAPP_URL && isGoogle(url))) return;
+    e.preventDefault(); if (/^https?:/i.test(url)) shell.openExternal(url);
   });
 
   // 엑셀 다운로드: 저장 위치를 묻는 창 표시
@@ -190,7 +213,8 @@ function create() {
     const r = dialog.showMessageBoxSync(win, {
       type: 'question', buttons: ['종료', '취소'], defaultId: 1, cancelId: 1, noLink: true,
       title: '종료 확인', message: '프로그램을 종료할까요?',
-      detail: '이수 관리와 선정 명단은 자동 저장됩니다.\n가정통신문에서 직접 고친 문구는 저장되지 않으니 필요하면 먼저 인쇄해 두세요.' +
+      detail: (WEBAPP_URL ? '입력한 내용은 학교 구글 시트에 자동 저장됩니다.' : '이수 관리와 선정 명단은 자동 저장됩니다.') +
+              '\n가정통신문에서 직접 고친 문구는 저장되지 않으니 필요하면 먼저 인쇄해 두세요.' +
               (updateReady ? '\n\n종료하면 받아 둔 새 버전이 자동으로 설치됩니다.' : '')
     });
     if (r === 1) e.preventDefault(); else quitting = true;

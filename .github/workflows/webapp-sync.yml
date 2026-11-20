@@ -1,0 +1,27 @@
+name: 웹앱 파일 갱신
+
+# index.html을 고치면 Apps Script에 붙여넣을 webapp/Index.html을 자동으로 다시 만듭니다.
+on:
+  push:
+    branches: [main]
+    paths: ['index.html', 'webapp/build.py']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: webapp/Index.html 만들기
+        run: python3 webapp/build.py
+      - name: 바뀌었으면 저장
+        run: |
+          if git diff --quiet -- webapp/Index.html; then echo "변경 없음"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add webapp/Index.html
+          git commit -m "웹앱 파일 자동 갱신 (webapp/Index.html)"
+          git push

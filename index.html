@@ -379,6 +379,12 @@ table.itbl td.mk button{width:100%;min-width:38px;height:30px;border:none;backgr
 table.itbl td.mk.o{background:var(--ok-soft)}table.itbl td.mk.o button{color:var(--ok)}
 table.itbl td.mk.x{background:var(--stamp-soft)}table.itbl td.mk.x button{color:var(--stamp)}
 table.itbl td.mk button:hover{box-shadow:inset 0 0 0 2px var(--pc)}
+table.itbl .stk1,table.itbl .stk2,table.itbl .stk3{position:sticky;z-index:1}
+table.itbl .stk1{left:0;min-width:44px;width:44px}
+table.itbl .stk2{left:44px;min-width:66px;width:66px}
+table.itbl .stk3{left:110px;min-width:92px;max-width:92px;overflow:hidden;text-overflow:ellipsis;box-shadow:inset -1px 0 0 var(--line-2)}
+table.itbl thead .stk1,table.itbl thead .stk2,table.itbl thead .stk3{z-index:3}
+table.itbl tbody tr:nth-child(even) td.stk1,table.itbl tbody tr:nth-child(even) td.stk2,table.itbl tbody tr:nth-child(even) td.stk3{background:var(--row-alt)}
 table.itbl.compact{width:100%}
 table.itbl.compact th{position:static}
 table.itbl tr.tot td{background:#f6f7f9;font-weight:700}
@@ -399,6 +405,50 @@ table.itbl td.acts{white-space:nowrap}
 .isu-notice{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:13.5px;max-width:min(720px,90vw);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;line-height:1.5}
 .isu-notice.on{opacity:1;transform:translate(-50%,0)}
 @media (max-width:1100px){.isu-two,.isu-methods{grid-template-columns:1fr}}
+/* ── 홈·로그인·계정 ── */
+.isu-home{display:block;width:calc(100% - 20px);margin:14px 10px 0;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer}
+.isu-home:hover,.isu-home.active{background:var(--pc-soft);border-color:#d9cff0;color:var(--pc-ink)}
+.isu-side-filter{padding:0 10px 8px}.isu-side-filter select{width:100%;border:1px solid var(--line-2);border-radius:7px;padding:6px 8px;font-size:13px;background:var(--surface)}
+.isu-item .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#e8a33d;vertical-align:middle;margin-left:3px}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.hc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.hc-top{display:flex;flex-direction:column;gap:3px;text-align:left;border:none;background:none;padding:0;cursor:pointer;color:var(--ink)}
+.hc-top b{font-size:17px;letter-spacing:-.3px}.hc-top span{font-size:12.5px;color:var(--muted)}
+.hc-top:hover b{color:var(--pc-ink)}
+.hc-ms{display:flex;flex-direction:column;gap:8px}
+.hc-ml{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);margin-bottom:3px}.hc-ml b{color:var(--ink)}
+.hc-bar{height:6px;background:#eef0f3;border-radius:3px;overflow:hidden}.hc-bar i{display:block;height:100%;background:var(--pc);border-radius:3px}.hc-bar i.ok{background:var(--ok)}
+.hc-todo{list-style:none;margin:0;padding:10px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.hc-todo button{border:none;background:#fff6e8;color:#8a4b00;border-radius:7px;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer;text-align:left;width:100%}
+.hc-todo button:hover{background:#ffeccc}
+.hc-todo .more{font-size:12px;color:var(--muted);padding-left:4px}
+.hc-done{border-top:1px solid var(--line);padding-top:10px;font-size:13px;color:var(--ok);font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpis>div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.kpis b{font-size:21px;letter-spacing:-.4px}.kpis span{font-size:12px;color:var(--muted)}
+.kpis .warn b{color:#a14d00}
+table.itbl.hover tbody tr{cursor:pointer}
+table.itbl td.todo{text-align:left;font-size:12.5px;color:var(--ink-2)}
+.acc-name{border:1px solid transparent;background:transparent;border-radius:6px;padding:4px 6px;font-size:13px;width:110px}
+.acc-name:hover,.acc-name:focus{border-color:var(--line-2);background:var(--surface);outline:none}
+#who{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;padding:0 4px}
+#who .who-n{font-weight:700}#who .who-r{font-size:11.5px;background:var(--pc-soft);color:var(--pc-ink);border-radius:999px;padding:2px 8px;font-weight:650}
+#who .who-s{font-size:12px;color:var(--muted)}
+body.locked>*:not(#login-ov){visibility:hidden}
+#login-ov{position:fixed;inset:0;z-index:100;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
+.lg-card{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 28px 22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px rgba(28,36,51,.08)}
+.lg-brand{display:flex;align-items:center;gap:10px}.lg-brand .mark{width:30px;height:30px;border-radius:8px;background:#5b3d99;position:relative}.lg-brand .mark::after{content:'';position:absolute;inset:8px;border:2.5px solid #fff;border-radius:50%}
+.lg-brand b{font-size:16px}
+.lg-school{font-size:13px;color:var(--muted);margin:-6px 0 0 40px}
+.lg-card h2{font-size:19px;margin-top:6px}
+.lg-sub{font-size:13px;color:var(--muted);line-height:1.6}
+.lg-card label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.lg-card input{border:1px solid var(--line-2);border-radius:8px;padding:10px 12px;font-size:15px;color:var(--ink)}
+.lg-card input:focus{outline:none;border-color:#5b3d99;box-shadow:0 0 0 3px #f1edf9}
+.lg-go{margin-top:6px;padding:12px;font-size:15px;background:#5b3d99!important}
+.lg-err{color:var(--stamp);font-size:13px;min-height:1em;line-height:1.5}
+.lg-warn{background:#fff6e8;color:#8a4b00;border-radius:8px;padding:10px 12px;font-size:13px}
+@media (max-width:900px){.isu-layout{grid-template-columns:1fr}.isu-side{position:static;height:auto}.kpis{grid-template-columns:repeat(2,1fr)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{
   header,.app-tabs,.sub-tabs,.sem-bar,.toolbar,.btn,.step-card,.attend-toolbar,.stats-bar{display:none!important}
@@ -704,9 +754,17 @@ table.itbl td.acts{white-space:nowrap}
           <li><strong>① 기본 정보</strong>: 학년도·학기·과목명·학점·교과 구분, 학생 구분별 <strong>연계율</strong>, 운영 시수, 운영 방법을 정합니다. 예방지도 인정 상한의 계산 방식(학점×3 또는 기존 엑셀 방식)은 학교 기준에 맞게 고릅니다.</li>
           <li><strong>② 예방지도 출석</strong>: 예방지도 탭에 올린 선정 명단에서 그 과목 학생을 가져옵니다. 참여한 날짜(예: 5/14)를 적으면 시수와 운영 기간이 계산됩니다.</li>
           <li><strong>③ 보충·추가 명단</strong>: 학기 말 나이스에서 내려받은 대상자 파일을 올리면 <strong>학업 성취율 미도달 → 보충지도</strong>, <strong>과목 출석률만 미도달 → 추가학습</strong>으로 자동으로 나뉩니다.</li>
-          <li><strong>④⑤ 출석</strong>: 칸을 눌러 O/X를 표시합니다. 예방지도 인정 시수(학생 구분별 상한 이내)를 더해 운영 시수의 <strong>2/3 이상</strong>이면 충족입니다.</li>
+          <li><strong>④⑤ 출석</strong>: 학생별로 참여한 날짜(예: 7/14)를 칸에 적습니다. 머리글에 날짜를 넣고 ‘↓’를 누르면 그 회차 빈칸이 한 번에 채워집니다. 예방지도 인정 시수(학생 구분별 상한 이내)를 더해 운영 시수의 <strong>2/3 이상</strong>이면 충족입니다.</li>
           <li><strong>⑥ 이수 결과</strong>: 엑셀(이수결과·출석부 4개 시트)로 내보내거나 인쇄합니다.</li>
           <li><strong>담당 선생님 취합</strong>: 각 선생님이 <strong>📤 과목 파일 내보내기</strong>로 만든 파일을 담당자가 <strong>📥 과목 파일 불러오기</strong>로 모두 넣으면 <strong>🏫 학교 전체 취합</strong>에서 한 번에 정리되고 엑셀로 받을 수 있습니다.</li>
+        </ul>
+        <div class="sec-title">🔐 학교 웹앱(로그인)으로 쓸 때</div>
+        <ul style="margin-bottom:16px;padding-left:20px;color:var(--text)">
+          <li>담당 선생님께 받은 <strong>아이디와 처음 비밀번호</strong>로 로그인하고, 처음 한 번 새 비밀번호를 정합니다.</li>
+          <li><strong>🏠 홈</strong>에 내 과목과 할 일(출석 미입력, 기준 미달 학생 등)이 나옵니다. 할 일을 누르면 바로 그 화면으로 갑니다.</li>
+          <li>입력한 내용은 학교 구글 시트에 자동 저장되고, 담당 선생님 화면에 바로 반영됩니다. 과목 파일을 따로 보낼 필요가 없습니다.</li>
+          <li>담당 선생님(관리자)은 <strong>학교 전체 현황</strong>, <strong>👥 계정 관리</strong>, 선정 명단 올리기, 전체 이수결과 엑셀·시트 만들기를 할 수 있습니다.</li>
+          <li>한 과목을 여러 선생님이 나눠 맡으면 <strong>기본 정보 → 담당 반</strong>에 반(예: 1~5)을 적어 두세요. 명단을 가져올 때 그 반 학생만 들어옵니다.</li>
         </ul>
         <div class="sec-title">💾 저장과 백업</div>
         <ul style="margin-bottom:16px;padding-left:20px;color:var(--text)">
@@ -2209,8 +2267,22 @@ document.querySelector('.app-tab').classList.add('active');
 <script>
 /* ══════════════════════════════════════════════════════════════
    이수 관리: 예방지도 → 보충지도/추가학습 → 이수 결과
-   데이터는 이 PC에 자동 저장 (데스크톱: 앱 데이터 폴더, 브라우저: localStorage)
+   저장: 학교 웹앱(Apps Script)에서 열면 구글 시트, 아니면 이 PC (데스크톱: 앱 데이터 폴더, 브라우저: localStorage)
    ══════════════════════════════════════════════════════════════ */
+
+/* ── 서버(구글 시트) 연결: Apps Script 웹앱 안에서 열리면 자동으로 서버 모드 ── */
+var SRV = (typeof google !== 'undefined' && google.script && google.script.run) ? {
+  call: function(action, payload){
+    return new Promise(function(res, rej){
+      google.script.run
+        .withSuccessHandler(function(r){ if (r && r.ok) res(r); else rej(r || { error:'SERVER', message:'응답이 없습니다.' }); })
+        .withFailureHandler(function(e){ rej({ error:'NETWORK', message:(e && e.message) || String(e) }); })
+        .api(AUTH.token, action, payload || {});
+    });
+  }
+} : null;
+var AUTH = { token:null, user:null, teachers:[] };
+function isAdmin(){ return !SRV || (AUTH.user && AUTH.user.role === 'admin'); }
 
 /* ── 저장소 ── */
 var STORE = window.appStore || {
@@ -2234,21 +2306,82 @@ var DB = {
   save: function(){
     if (!DB.data) return;
     DB.pending = true; clearTimeout(DB.timer);
-    DB.timer = setTimeout(DB.flush, 400);
+    DB.timer = setTimeout(DB.flush, SRV ? 900 : 400);
     ISU.status('저장 중…');
+  },
+  /* 서버 모드: 바뀐 과목·명단만 골라 보냄 */
+  snap: { c:{}, l:{}, cc:'', cap:'' },
+  cjson: function(c){ return JSON.stringify(c, function(k, v){ return k === 'version' ? undefined : v; }); },
+  takeSnap: function(){
+    DB.snap = { c:{}, l:{}, cc: JSON.stringify(DB.data.chooCustom || []), cap: DB.data.settings.capMode || 'x3' };
+    DB.data.courses.forEach(function(c){ DB.snap.c[c.id] = DB.cjson(c); });
+    ['prev','boch','choo'].forEach(function(a){ DB.snap.l[a] = DB.data.lists[a] ? JSON.stringify(DB.data.lists[a]) : ''; });
+  },
+  flushServer: function(){
+    if (DB.busy) { DB.again = true; return DB.busy; }
+    var jobs = [];
+    DB.data.courses.forEach(function(c){ var j = DB.cjson(c); if (DB.snap.c[c.id] !== j) jobs.push({ t:'c', c:c, j:j }); });
+    Object.keys(DB.snap.c).forEach(function(id){ if (!DB.data.courses.some(function(c){ return c.id === id; })) jobs.push({ t:'d', id:id }); });
+    if (isAdmin()) {
+      ['prev','boch','choo'].forEach(function(a){ var j = DB.data.lists[a] ? JSON.stringify(DB.data.lists[a]) : ''; if ((DB.snap.l[a]||'') !== j) jobs.push({ t:'l', a:a, j:j }); });
+      var cc = JSON.stringify(DB.data.chooCustom || []), cap = DB.data.settings.capMode || 'x3';
+      if (DB.snap.cc !== cc || DB.snap.cap !== cap) jobs.push({ t:'s', cc:cc, cap:cap });
+    }
+    if (!jobs.length) { DB.savedAt = DB.savedAt || new Date(); ISU.status(); return Promise.resolve(); }
+    var subjChanged = false;
+    DB.busy = jobs.reduce(function(pr, jb){
+      return pr.then(function(){
+        if (jb.t === 'c') {
+          var old = DB.snap.c[jb.c.id] ? JSON.parse(DB.snap.c[jb.c.id]).subject : null;
+          return SRV.call('saveCourse', { course: jb.c, baseVersion: jb.c.version || 0 }).then(function(r){
+            jb.c.version = r.version; jb.c.owner = r.owner; jb.c.teacher = r.teacher;
+            DB.snap.c[jb.c.id] = DB.cjson(jb.c);
+            if (old !== jb.c.subject) subjChanged = true;
+          }, function(e){
+            if (e.error === 'CONFLICT' && e.data && e.data.course) {
+              var fresh = ISU.normalize(e.data.course), i = DB.data.courses.indexOf(jb.c);
+              if (i >= 0) DB.data.courses[i] = fresh;
+              DB.snap.c[fresh.id] = DB.cjson(fresh);
+              ISU.toast('다른 곳(다른 PC나 담당 선생님)에서 먼저 고친 과목이라 최신 내용으로 바꿨습니다. 방금 고친 내용을 다시 확인해 주세요.');
+              ISU.renderSoon(); return;
+            }
+            throw e;
+          });
+        }
+        if (jb.t === 'd') return SRV.call('deleteCourse', { id: jb.id }).then(function(){ delete DB.snap.c[jb.id]; });
+        if (jb.t === 'l') return SRV.call('saveList', { app: jb.a, rec: DB.data.lists[jb.a] || {} }).then(function(){ DB.snap.l[jb.a] = jb.j; });
+        if (jb.t === 's') return SRV.call('saveSettings', { settings: { chooCustom: JSON.parse(jb.cc), capMode: jb.cap } }).then(function(){ DB.snap.cc = jb.cc; DB.snap.cap = jb.cap; });
+      });
+    }, Promise.resolve()).then(function(){
+      DB.busy = null; DB.savedAt = new Date(); DB.failCount = 0; ISU.status();
+      if (subjChanged && !isAdmin()) ISU.refreshLists();
+      if (DB.again) { DB.again = false; return DB.flushServer(); }
+    }, function(e){
+      DB.busy = null; DB.pending = true;
+      if (e.error === 'AUTH') { ISU.status('로그인이 끊겼습니다. 다시 로그인하면 이어서 저장합니다.', true); return Login.show('expired'); }
+      DB.failCount = (DB.failCount || 0) + 1;
+      ISU.status('저장하지 못했습니다(' + (e.message || e.error) + '). 잠시 뒤 다시 시도합니다.', true);
+      clearTimeout(DB.timer); DB.timer = setTimeout(DB.flush, Math.min(60000, 5000 * DB.failCount));
+    });
+    return DB.busy;
   },
   flush: function(){
     if (!DB.data) return Promise.resolve();
+    if (SRV) { clearTimeout(DB.timer); DB.pending = false; return DB.flushServer(); }
     clearTimeout(DB.timer); DB.pending = false;
     return Promise.resolve(STORE.save(JSON.stringify(DB.data))).then(function(){
       DB.savedAt = new Date(); ISU.status();
     }, function(e){ ISU.status('저장하지 못했습니다: ' + (e && e.message || e), true); });
   },
   flushSync: function(){
+    if (SRV) { if (DB.pending) DB.flush(); return; }
     if (DB.data && DB.pending) { clearTimeout(DB.timer); DB.pending = false; STORE.saveSync(JSON.stringify(DB.data)); }
   }
 };
-window.addEventListener('beforeunload', function(){ DB.flushSync(); });
+window.addEventListener('beforeunload', function(e){
+  DB.flushSync();
+  if (SRV && (DB.pending || DB.busy) && !/Electron/.test(navigator.userAgent)) { e.preventDefault(); e.returnValue = '아직 저장 중입니다.'; }
+});
 
 /* ── 선정 명단 저장·복원 (기존 예방/보충/추가 탭) ── */
 function persistList(app, filename, note) {
@@ -2295,7 +2428,7 @@ var ISU_STEPS = [
 ];
 
 var ISU = {
-  step: 'info', view: 'course', notice: '',
+  step: 'info', view: 'home', notice: '', accounts: null, filterTeacher: '',
 
   /* ── 모델 도우미 ── */
   course: function(){ var id = DB.data && DB.data.current; return DB.data ? DB.data.courses.filter(function(c){ return c.id === id; })[0] || null : null; },
@@ -2318,7 +2451,11 @@ var ISU = {
     c.prev.students.forEach(function(s){ s.dates = fit(s.dates || [], c.prev.count, function(){ return ''; }); });
     ['boch','choo'].forEach(function(p){
       fit(c[p].sessions, c[p].hours, function(){ return { method:'', date:'' }; });
-      c[p].students.forEach(function(s){ s.marks = fit(s.marks || [], c[p].hours, function(){ return ''; }); });
+      c[p].students.forEach(function(s){
+        if (s.marks && !s.dates) s.dates = s.marks.map(function(m, j){ return m === 'O' ? ((c[p].sessions[j] && c[p].sessions[j].date) || '✓') : ''; });  // 1.1 O/X 기록 변환
+        delete s.marks;
+        s.dates = fit(s.dates || [], c[p].hours, function(){ return ''; });
+      });
     });
   },
   newCourse: function(){
@@ -2326,7 +2463,7 @@ var ISU = {
     var c = {
       id: 'c' + now.getTime().toString(36) + Math.random().toString(36).slice(2,6),
       year: now.getFullYear(), sem: (now.getMonth() < 7 ? '1' : '2'), grade: 1,
-      subject: '', kind: '보통교과', credits: 4, teacher: DB.data.settings.teacher || '',
+      subject: '', kind: '보통교과', credits: 4, teacher: SRV ? AUTH.user.name : (DB.data.settings.teacher || ''), owner: SRV ? AUTH.user.id : '', classes: '',
       capMode: DB.data.settings.capMode || 'x3', rates: {}, createdAt: now.toISOString()
     };
     ISU.normalize(c);
@@ -2356,7 +2493,7 @@ var ISU = {
     return { joined: h > 0, hours: h, link: Math.min(h, cap), period: ISU.period(p.dates), cap: cap };
   },
   row: function(c, prog, s){
-    var att = (s.marks||[]).filter(function(m){ return m === 'O'; }).length;
+    var att = ISU.prevHours(s);
     var lk = ISU.link(c, s.sid), total = att + lk.link, need = c[prog].hours * 2 / 3;
     return { att: att, lk: lk, total: total, need: need, ok: total >= need - 1e-9 };
   },
@@ -2369,11 +2506,155 @@ var ISU = {
     return v;
   },
   sid: function(v){ return String(v==null?'':v).replace(/\D/g,''); },
-  sidCell: function(sid){ var ok = /^\d{5}$/.test(String(sid)); return '<td'+(ok?'':' class="warn" title="학번은 보통 5자리(학년1+반2+번호2)입니다. 확인해 주세요."')+'>'+esc2(sid)+(ok?'':' ⚠')+'</td>'; },
+  sidCell: function(sid, extra){ var ok = /^\d{5}$/.test(String(sid)); return '<td class="'+(extra||'')+(ok?'':' warn')+'"'+(ok?'':' title="학번은 보통 5자리(학년1+반2+번호2)입니다. 확인해 주세요."')+'>'+esc2(sid)+(ok?'':' ⚠')+'</td>'; },
   subjects: function(sem){
     var seen = {}, out = [];
     getSubjects('choo', sem).concat(SUBJECTS[sem==='1'?'2':'1']).forEach(function(s){ if (!seen[s]) { seen[s]=1; out.push(s); } });
     return out;
+  },
+
+  /* ── 담당 반: "1-1, 1-3" 또는 "1,3"(대상 학년 기준). 비우면 전체 ── */
+  classSet: function(c){
+    var txt = String(c.classes || '').trim(); if (!txt || /전체/.test(txt)) return null;
+    var set = {};
+    txt.split(/[,\s·]+/).forEach(function(t){
+      var m = t.match(/^(\d)\s*-\s*(\d{1,2})$/), r = t.match(/^(\d{1,2})\s*~\s*(\d{1,2})$/), m2 = t.match(/^(\d)-(\d{1,2})~(\d{1,2})$/);
+      if (m2) { for (var k = +m2[2]; k <= +m2[3]; k++) set[m2[1]+'-'+k] = 1; }
+      else if (m) set[(+m[1])+'-'+(+m[2])] = 1;
+      else if (r) { for (var k2 = +r[1]; k2 <= +r[2]; k2++) set[c.grade+'-'+k2] = 1; }
+      else if (/^\d{1,2}$/.test(t)) set[c.grade+'-'+(+t)] = 1;
+    });
+    return Object.keys(set).length ? set : null;
+  },
+  inClasses: function(c, grade, cls){ var set = ISU.classSet(c); return !set || !!set[(+grade)+'-'+(+cls)]; },
+
+  /* ── 진행 상황·할 일 ── */
+  stats: function(c){
+    var o = { prevN: c.prev.students.length, prevIn: c.prev.students.filter(function(s){ return ISU.prevHours(s) > 0; }).length, noMethod: {} };
+    ['prev','boch','choo'].forEach(function(p){
+      var st = c[p].students;
+      o.noMethod[p] = c[p].sessions.filter(function(ss, j){ return !ss.method && st.some(function(s){ return s.dates[j]; }); }).length;
+      if (p === 'prev') return;
+      var rows = st.map(function(s){ return ISU.row(c, p, s); });
+      o[p] = { n: st.length, ok: rows.filter(function(r){ return r.ok; }).length, none: st.filter(function(s){ return ISU.prevHours(s) === 0; }).length };
+      o[p].short = o[p].n - o[p].ok - st.filter(function(s, i){ return !rows[i].ok && ISU.prevHours(s) === 0; }).length;
+    });
+    return o;
+  },
+  todos: function(c){
+    var o = ISU.stats(c), t = [];
+    if (!c.subject) t.push(['info', '과목명을 입력하세요']);
+    if (!o.prevN) t.push(['prev', '예방지도 학생을 넣으세요']);
+    else if (o.prevIn < o.prevN) t.push(['prev', '예방지도 출석이 하나도 없는 학생 ' + (o.prevN - o.prevIn) + '명']);
+    if (!o.boch.n && !o.choo.n) t.push(['roster', '학기 말에 보충·추가 명단을 넣으세요']);
+    ['boch','choo'].forEach(function(p){
+      if (o[p].none) t.push([p, ISU_PROGS[p] + ' 출석 미입력 ' + o[p].none + '명']);
+      if (o[p].short) t.push([p, ISU_PROGS[p] + ' 기준 미달 ' + o[p].short + '명']);
+    });
+    ['prev','boch','choo'].forEach(function(p){ if (o.noMethod[p]) t.push([p, ISU_PROGS[p] + ' 운영 방법을 고르지 않은 회차 ' + o.noMethod[p] + '개']); });
+    return t;
+  },
+  bar: function(label, a, b, kind){
+    var pct = b ? Math.round(a / b * 100) : 0;
+    return '<div class="hc-m"><div class="hc-ml"><span>'+label+'</span><b>'+(b ? a+' / '+b : '-')+'</b></div><div class="hc-bar"><i class="'+(kind||'')+'" style="width:'+pct+'%"></i></div></div>';
+  },
+  semKey: function(c){ return c.year + '-' + c.sem; },
+  visibleCourses: function(){
+    var cs = DB.data.courses.slice();
+    if (SRV && isAdmin() && ISU.filterTeacher) cs = cs.filter(function(c){ return c.owner === ISU.filterTeacher; });
+    return cs.sort(function(a,b){ return (b.year-a.year) || (b.sem>a.sem?1:b.sem<a.sem?-1:0) || String(a.teacher||'').localeCompare(String(b.teacher||'')) || String(a.subject).localeCompare(String(b.subject)); });
+  },
+
+  /* ── 홈(대시보드) ── */
+  home: function(){
+    if (SRV && isAdmin()) return ISU.adminHome();
+    var cs = ISU.visibleCourses();
+    var who = SRV ? esc2(AUTH.user.name) + ' 선생님' : '';
+    var h = '<div class="isu-head"><div><h2>'+(who ? '안녕하세요, '+who : '내 과목')+'</h2><div class="isu-meta">'+(cs.length ? '과목 카드에서 할 일을 누르면 바로 그 화면으로 갑니다.' : '‘＋ 새 과목’으로 담당 과목을 만들어 시작하세요.')+'</div></div>' +
+      '<div class="isu-head-btns"><button class="btn btn-teal btn-sm" data-act="new">＋ 새 과목</button></div></div>';
+    if (!cs.length) return h + '<div class="isu-empty" style="padding-top:40px"><div class="empty-icon">📘</div><div class="empty-text">아직 과목이 없습니다</div><div class="empty-sub">과목마다 기본 정보 → 예방지도 출석 → 보충·추가 명단 → 출석 → 이수 결과 순서로 진행합니다.</div><button class="btn btn-teal" data-act="new" style="margin-top:18px">＋ 새 과목 만들기</button></div>';
+    h += '<div class="home-grid">';
+    cs.forEach(function(c){
+      var o = ISU.stats(c), td = ISU.todos(c);
+      h += '<div class="hc"><button class="hc-top" data-act="open" data-id="'+ea(c.id)+'"><b>'+esc2(c.subject || '과목명 없음')+'</b><span>'+c.year+'학년도 '+c.sem+'학기 · '+c.grade+'학년'+(c.classes ? ' · '+esc2(c.classes)+'반' : '')+'</span></button>' +
+        '<div class="hc-ms">' + ISU.bar('예방지도 출석 입력', o.prevIn, o.prevN) + ISU.bar('보충지도 충족', o.boch.ok, o.boch.n, 'ok') + ISU.bar('추가학습 충족', o.choo.ok, o.choo.n, 'ok') + '</div>';
+      h += td.length ? '<ul class="hc-todo">' + td.slice(0,4).map(function(x){ return '<li><button data-act="go" data-id="'+ea(c.id)+'" data-step="'+x[0]+'">'+esc2(x[1])+' →</button></li>'; }).join('') + (td.length > 4 ? '<li class="more">외 '+(td.length-4)+'건</li>' : '') + '</ul>'
+        : '<div class="hc-done">✓ 지금 할 일이 없습니다</div>';
+      h += '</div>';
+    });
+    return h + '</div>';
+  },
+  adminHome: function(){
+    var all = DB.data.courses, keys = {};
+    all.forEach(function(c){ keys[ISU.semKey(c)] = 1; });
+    var ks = Object.keys(keys).sort().reverse();
+    if (!ISU.sumKey || !keys[ISU.sumKey]) ISU.sumKey = ks[0] || '';
+    var list = all.filter(function(c){ return ISU.semKey(c) === ISU.sumKey; });
+    var rows = list.map(function(c){ return { c:c, o:ISU.stats(c), t:ISU.todos(c) }; }).sort(function(a,b){ return (b.t.length - a.t.length) || String(a.c.teacher).localeCompare(String(b.c.teacher)); });
+    var K = { b:0, bo:0, ch:0, co:0, none:0, todo:0 };
+    rows.forEach(function(r){ K.b += r.o.boch.n; K.bo += r.o.boch.ok; K.ch += r.o.choo.n; K.co += r.o.choo.ok; K.none += r.o.boch.none + r.o.choo.none; if (r.t.length) K.todo++; });
+    var teachers = AUTH.teachers.filter(function(t){ return t.role !== 'admin' || all.some(function(c){ return c.owner === t.id; }); });
+    var idle = teachers.filter(function(t){ return t.role === 'teacher' && !list.some(function(c){ return c.owner === t.id; }); });
+    var h = '<div class="isu-head"><div><h2>학교 전체 현황</h2><div class="isu-meta">선생님들이 입력하는 즉시 반영됩니다. 행을 누르면 그 과목을 열어 함께 고칠 수 있습니다.</div></div>' +
+      '<div class="isu-head-btns">' + (ks.length ? '<select data-set="sumKey">'+ks.map(function(k){ var p=k.split('-'); return '<option value="'+k+'"'+(k===ISU.sumKey?' selected':'')+'>'+p[0]+'학년도 '+p[1]+'학기</option>'; }).join('')+'</select>' : '') +
+      '<button class="btn btn-navy2 btn-sm" data-act="toSheet"'+(list.length?'':' disabled')+'>📄 시트에 이수결과 만들기</button>' +
+      '<button class="btn btn-teal btn-sm" data-act="exportSummary"'+(list.length?'':' disabled')+'>⬇ 학교 전체 엑셀</button></div></div>';
+    h += '<div class="kpis"><div><b>'+list.length+'</b><span>과목</span></div><div><b>'+K.bo+' / '+K.b+'</b><span>보충지도 충족</span></div><div><b>'+K.co+' / '+K.ch+'</b><span>추가학습 충족</span></div>' +
+      '<div class="'+(K.none?'warn':'')+'"><b>'+K.none+'</b><span>출석 미입력 학생</span></div><div class="'+(K.todo?'warn':'')+'"><b>'+K.todo+'</b><span>할 일 남은 과목</span></div></div>';
+    if (idle.length) h += '<p class="isu-hint" style="margin:-4px 0 12px">이 학기에 과목이 없는 선생님: '+idle.map(function(t){ return esc2(t.name); }).join(', ')+' — 과목을 만들어 배정하려면 ‘＋ 새 과목’ 후 기본 정보에서 담당 교사를 고르세요.</p>';
+    h += '<div class="isu-card" style="padding:0;overflow:hidden"><table class="itbl compact hover"><thead><tr><th>학년</th><th>과목</th><th>담당 교사</th><th>담당 반</th><th>예방 출석 입력</th><th>보충 충족</th><th>추가 충족</th><th>남은 할 일</th></tr></thead><tbody>';
+    if (!rows.length) h += '<tr><td colspan="8" class="isu-none">이 학기 과목이 없습니다. ‘＋ 새 과목’으로 만들거나 선생님들께 만들어 달라고 안내하세요.</td></tr>';
+    rows.forEach(function(r){
+      var c = r.c, o = r.o;
+      h += '<tr data-act="open" data-id="'+ea(c.id)+'"><td>'+c.grade+'</td><td class="nm">'+esc2(c.subject||'(과목명 없음)')+'</td><td>'+esc2(c.teacher||'')+'</td><td>'+esc2(c.classes||'전체')+'</td>' +
+        '<td class="num">'+o.prevIn+' / '+o.prevN+'</td><td class="num">'+o.boch.ok+' / '+o.boch.n+'</td><td class="num">'+o.choo.ok+' / '+o.choo.n+'</td>' +
+        '<td class="todo">'+(r.t.length ? '<span class="isu-badge no">'+r.t.length+'</span> '+esc2(r.t[0][1]) : '<span class="isu-badge ok">완료</span>')+'</td></tr>';
+    });
+    return h + '</tbody></table></div><div style="margin-top:10px"><button class="btn btn-teal btn-sm" data-act="new">＋ 새 과목</button></div>';
+  },
+
+  /* ── 계정 관리 (관리자) ── */
+  accountsView: function(){
+    if (!ISU.accounts) { SRV.call('accounts').then(function(r){ ISU.accounts = r.accounts; ISU.render(); }, function(e){ ISU.toast(e.message || e.error); }); return '<div class="isu-empty">불러오는 중…</div>'; }
+    var cnt = {}; DB.data.courses.forEach(function(c){ cnt[c.owner] = (cnt[c.owner]||0) + 1; });
+    var h = '<div class="isu-head"><div><h2>계정 관리</h2><div class="isu-meta">선생님 계정을 만들고 아이디와 처음 비밀번호를 알려 주세요. 처음 로그인하면 비밀번호를 바꾸게 됩니다.</div></div></div>';
+    h += '<div class="isu-card"><h3>새 계정</h3><div class="isu-form">' +
+      '<label>아이디<input data-acc="id" placeholder="예: kim01" autocomplete="off"></label><label>이름<input data-acc="name" placeholder="예: 김선생"></label>' +
+      '<label>역할<select data-acc="role"><option value="teacher">교과 교사</option><option value="admin">관리자(담당자)</option></select></label>' +
+      '<label>처음 비밀번호<input data-acc="password" placeholder="6자 이상" autocomplete="off"></label>' +
+      '<label style="justify-content:flex-end"><button class="btn btn-teal" data-act="accAdd">계정 만들기</button></label></div>' +
+      '<p class="isu-hint">아이디는 영문으로 시작하는 영문·숫자입니다. 여러 명은 한 명씩 만들면 됩니다.</p></div>';
+    h += '<div class="isu-card" style="padding:0;overflow:hidden"><table class="itbl compact"><thead><tr><th>아이디</th><th>이름</th><th>역할</th><th>상태</th><th>과목 수</th><th>마지막 로그인</th><th></th></tr></thead><tbody>';
+    ISU.accounts.forEach(function(a){
+      h += '<tr><td>'+esc2(a.id)+'</td><td><input class="acc-name" value="'+ea(a.name)+'" data-accname="'+ea(a.id)+'"></td>' +
+        '<td>'+(a.role==='admin'?'<span class="isu-badge ok">관리자</span>':'교과 교사')+'</td>' +
+        '<td>'+(a.active ? (a.mustChange ? '<span class="z">비밀번호 변경 전</span>' : '사용 중') : '<span class="isu-badge no">사용 중지</span>')+'</td>' +
+        '<td class="num">'+(cnt[a.id]||0)+'</td><td class="per">'+esc2(a.lastLogin||'-')+'</td>' +
+        '<td class="acts"><button class="isu-mini-btn" data-act="accReset" data-id="'+ea(a.id)+'">비밀번호 초기화</button>' +
+        '<button class="isu-mini-btn" data-act="accRole" data-id="'+ea(a.id)+'">'+(a.role==='admin'?'교사로':'관리자로')+'</button>' +
+        '<button class="isu-mini-btn" data-act="accActive" data-id="'+ea(a.id)+'">'+(a.active?'사용 중지':'다시 사용')+'</button></td></tr>';
+    });
+    return h + '</tbody></table></div>';
+  },
+  passwordView: function(){
+    var must = AUTH.user && AUTH.user.mustChange;
+    return '<div class="isu-head"><div><h2>비밀번호 변경</h2><div class="isu-meta">'+esc2(AUTH.user.name)+' ('+esc2(AUTH.user.id)+')</div></div></div>' +
+      '<div class="isu-card" style="max-width:520px"><div class="isu-form" style="flex-direction:column">' +
+      (must ? '' : '<label>지금 비밀번호<input type="password" data-pw="old" autocomplete="current-password"></label>') +
+      '<label>새 비밀번호 (6자 이상)<input type="password" data-pw="new" autocomplete="new-password"></label>' +
+      '<label>새 비밀번호 확인<input type="password" data-pw="new2" autocomplete="new-password"></label>' +
+      '<div><button class="btn btn-teal" data-act="pwSave">바꾸기</button></div></div></div>';
+  },
+  account: function(id){ return (ISU.accounts||[]).filter(function(a){ return a.id === id; })[0]; },
+  saveAccount: function(p){
+    return SRV.call('saveAccount', p).then(function(r){ ISU.accounts = r.accounts; ISU.syncTeachers(); ISU.render(); return r; }, function(e){ ISU.toast(e.message || e.error); throw e; });
+  },
+  syncTeachers: function(){ AUTH.teachers = (ISU.accounts||[]).filter(function(a){ return a.active; }).map(function(a){ return { id:a.id, name:a.name, role:a.role }; }); },
+  refreshLists: function(){
+    return SRV.call('lists').then(function(r){
+      DB.data.lists = r.lists || {}; ['prev','boch','choo'].forEach(function(a){ DB.snap.l[a] = DB.data.lists[a] ? JSON.stringify(DB.data.lists[a]) : ''; });
+      restoreLists(); ISU.renderSoon();
+    }, function(){});
   },
 
   /* ── 상태 표시 ── */
@@ -2384,7 +2665,17 @@ var ISU = {
     el.textContent = d ? ('자동 저장됨 · ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0')) : '자동 저장';
     el.className = 'isu-save';
   },
-  toast: function(msg){ ISU.notice = msg; var el = document.getElementById('isu-notice'); if (el) { el.textContent = msg; el.classList.add('on'); clearTimeout(ISU._nt); ISU._nt = setTimeout(function(){ el.classList.remove('on'); }, 3200); } },
+  toast: function(msg){
+    ISU.notice = msg; ISU.noticeUntil = Date.now() + Math.max(3200, msg.length * 70);
+    ISU.showNotice();
+  },
+  showNotice: function(){
+    var el = document.getElementById('isu-notice'); if (!el) return;
+    var left = (ISU.noticeUntil || 0) - Date.now();
+    if (left <= 0) { el.classList.remove('on'); return; }
+    el.textContent = ISU.notice; el.classList.add('on');
+    clearTimeout(ISU._nt); ISU._nt = setTimeout(function(){ var e2 = document.getElementById('isu-notice'); if (e2) e2.classList.remove('on'); }, left);
+  },
 
   /* ── 렌더 ── */
   render: function(){
@@ -2399,38 +2690,51 @@ var ISU = {
       '<div id="isu-notice" class="isu-notice"></div>';
     var sx2 = root.querySelector('.isu-scroll'); if (sx2 && keep) { sx2.scrollLeft = keep[0]; sx2.scrollTop = keep[1]; }
     if (fsel) { var nf = root.querySelector(fsel); if (nf) nf.focus(); }
-    if (DB.err) { var e = DB.err; DB.err = ''; ISU.toast(e); }
+    if (DB.err) { var e = DB.err; DB.err = ''; ISU.toast(e); } else ISU.showNotice();
     ISU.status();
   },
   side: function(){
-    var cs = DB.data.courses.slice().sort(function(a,b){ return (b.year-a.year) || (b.sem>a.sem?1:b.sem<a.sem?-1:0) || String(a.subject).localeCompare(String(b.subject)); });
-    var h = '<aside class="isu-side"><div class="isu-side-head"><b>과목</b><button class="btn btn-teal btn-sm" data-act="new">＋ 새 과목</button></div><div class="isu-list">';
+    var cs = ISU.visibleCourses();
+    var h = '<aside class="isu-side">';
+    h += '<button class="isu-home'+(ISU.view==='home'?' active':'')+'" data-act="home">🏠 '+(SRV && isAdmin() ? '학교 전체 현황' : '홈 · 할 일')+'</button>';
+    h += '<div class="isu-side-head"><b>'+(SRV && !isAdmin() ? '내 과목' : '과목')+'</b><button class="btn btn-teal btn-sm" data-act="new">＋ 새 과목</button></div>';
+    if (SRV && isAdmin()) h += '<div class="isu-side-filter"><select data-set="filterTeacher"><option value="">모든 선생님</option>' + AUTH.teachers.map(function(t){ return '<option value="'+ea(t.id)+'"'+(ISU.filterTeacher===t.id?' selected':'')+'>'+esc2(t.name)+'</option>'; }).join('') + '</select></div>';
+    h += '<div class="isu-list">';
     if (!cs.length) h += '<p class="isu-side-empty">아직 과목이 없습니다.</p>';
     cs.forEach(function(c){
-      var active = ISU.view === 'course' && c.id === DB.data.current;
+      var active = ISU.view === 'course' && c.id === DB.data.current, td = ISU.todos(c).length;
       h += '<button class="isu-item'+(active?' active':'')+'" data-act="open" data-id="'+ea(c.id)+'">' +
-        '<span class="t">'+esc2(c.subject || '과목명 없음')+'</span>' +
-        '<span class="m">'+c.year+' · '+c.sem+'학기 · '+c.grade+'학년'+(c.teacher?' · '+esc2(c.teacher):'')+'</span>' +
-        '<span class="n">예방 '+c.prev.students.length+' · 보충 '+c.boch.students.length+' · 추가 '+c.choo.students.length+(c.importedAt?' · 받은 파일':'')+'</span></button>';
+        '<span class="t">'+esc2(c.subject || '과목명 없음')+(td ? ' <i class="dot" title="할 일 '+td+'건"></i>' : '')+'</span>' +
+        '<span class="m">'+c.year+' · '+c.sem+'학기 · '+c.grade+'학년'+(c.teacher && (!SRV || isAdmin()) ?' · '+esc2(c.teacher):'')+(c.classes?' · '+esc2(c.classes):'')+'</span>' +
+        '<span class="n">예방 '+c.prev.students.length+' · 보충 '+c.boch.students.length+' · 추가 '+c.choo.students.length+(c.importedAt && !SRV?' · 받은 파일':'')+'</span></button>';
     });
-    h += '</div><div class="isu-side-foot">' +
-      '<button class="isu-link'+(ISU.view==='summary'?' active':'')+'" data-act="summary">🏫 학교 전체 취합</button>' +
-      '<label class="isu-link">📥 과목 파일 불러오기<input type="file" accept=".json" multiple data-file="course" hidden></label>' +
-      '<button class="isu-link" data-act="backup">💾 전체 백업 파일 만들기</button>' +
-      '<label class="isu-link">♻️ 백업 파일로 되돌리기<input type="file" accept=".json" data-file="backup" hidden></label>' +
-      (STORE.openFolder ? '<button class="isu-link" data-act="folder">📂 데이터 폴더 열기</button>' : '') +
-      '<div id="isu-save" class="isu-save"></div></div></aside>';
-    return h;
+    h += '</div><div class="isu-side-foot">';
+    if (SRV) {
+      if (isAdmin()) h += '<button class="isu-link'+(ISU.view==='accounts'?' active':'')+'" data-act="accounts">👥 계정 관리</button>';
+      h += '<label class="isu-link">📥 이전 버전 과목 파일 가져오기<input type="file" accept=".json" multiple data-file="course" hidden></label>' +
+        '<button class="isu-link'+(ISU.view==='password'?' active':'')+'" data-act="password">🔑 비밀번호 변경</button>' +
+        '<button class="isu-link" data-act="logout">↩ 로그아웃</button>';
+    } else {
+      h += '<button class="isu-link'+(ISU.view==='summary'?' active':'')+'" data-act="summary">🏫 학교 전체 취합</button>' +
+        '<label class="isu-link">📥 과목 파일 불러오기<input type="file" accept=".json" multiple data-file="course" hidden></label>' +
+        '<button class="isu-link" data-act="backup">💾 전체 백업 파일 만들기</button>' +
+        '<label class="isu-link">♻️ 백업 파일로 되돌리기<input type="file" accept=".json" data-file="backup" hidden></label>' +
+        (STORE.openFolder ? '<button class="isu-link" data-act="folder">📂 데이터 폴더 열기</button>' : '');
+    }
+    return h + '<div id="isu-save" class="isu-save"></div></div></aside>';
   },
   main: function(){
     if (ISU.view === 'summary') return ISU.summary();
+    if (ISU.view === 'home') return ISU.home();
+    if (ISU.view === 'accounts' && SRV && isAdmin()) return ISU.accountsView();
+    if (ISU.view === 'password' && SRV) return ISU.passwordView();
     var c = ISU.course();
     if (!c) return '<div class="isu-empty"><div class="empty-icon">✅</div><div class="empty-text">과목을 만들어 이수 관리를 시작하세요</div>' +
       '<div class="empty-sub">과목마다 기본 정보 → 예방지도 출석 → 보충·추가 명단 → 출석 → 이수 결과 순서로 진행합니다.<br>입력한 내용은 이 PC에 자동 저장됩니다.</div>' +
       '<button class="btn btn-teal" data-act="new" style="margin-top:18px">＋ 새 과목 만들기</button></div>';
     var counts = { info:'', prev:c.prev.students.length, roster:c.boch.students.length + c.choo.students.length, boch:c.boch.students.length, choo:c.choo.students.length, result:'' };
-    var h = '<div class="isu-head"><div><h2>'+esc2(c.subject || '새 과목')+'</h2><div class="isu-meta">'+c.year+'학년도 '+c.sem+'학기 · '+c.grade+'학년 · '+esc2(c.kind)+' '+c.credits+'학점'+(c.teacher?' · 지도교사 '+esc2(c.teacher):'')+'</div></div>' +
-      '<div class="isu-head-btns"><button class="btn btn-navy2 btn-sm" data-act="exportCourse">📤 과목 파일 내보내기</button>' +
+    var h = '<div class="isu-head"><div><h2>'+esc2(c.subject || '새 과목')+'</h2><div class="isu-meta">'+c.year+'학년도 '+c.sem+'학기 · '+c.grade+'학년'+(c.classes?' ('+esc2(c.classes)+'반)':'')+' · '+esc2(c.kind)+' '+c.credits+'학점'+(c.teacher?' · 지도교사 '+esc2(c.teacher):'')+'</div></div>' +
+      '<div class="isu-head-btns">' + (SRV ? '' : '<button class="btn btn-navy2 btn-sm" data-act="exportCourse">📤 과목 파일 내보내기</button>') +
       '<button class="btn btn-gray btn-sm" data-act="delCourse">삭제</button></div></div>';
     h += '<nav class="isu-steps">';
     ISU_STEPS.forEach(function(s, i){
@@ -2456,8 +2760,11 @@ var ISU = {
       '<label class="wide">과목명<input list="isu-subj-list" value="'+ea(c.subject)+'" placeholder="예: 공통영어1" data-set="c:subject"><datalist id="isu-subj-list">'+subjOpts+'</datalist></label>' +
       '<label>교과 구분'+sel('kind', [['보통교과','보통교과'],['전문교과','전문교과']], c.kind)+'</label>' +
       '<label>학점<input type="number" min="1" max="10" value="'+c.credits+'" data-set="c:credits"></label>' +
-      '<label>지도교사<input value="'+ea(c.teacher)+'" placeholder="이름" data-set="c:teacher"></label>' +
-      '</div><p class="isu-hint">과목명은 예방지도 탭의 선정 명단 과목명과 같아야 명단을 가져올 수 있습니다(예: 공통영어1).</p></div>';
+      (SRV ? (isAdmin() ? '<label>담당 교사<select data-set="c:owner">' + AUTH.teachers.map(function(t){ return '<option value="'+ea(t.id)+'"'+(c.owner===t.id?' selected':'')+'>'+esc2(t.name)+(t.role==='admin'?' (관리자)':'')+'</option>'; }).join('') + '</select></label>'
+                         : '<label>지도교사<input value="'+ea(c.teacher)+'" disabled></label>')
+           : '<label>지도교사<input value="'+ea(c.teacher)+'" placeholder="이름" data-set="c:teacher"></label>') +
+      '<label class="wide">담당 반 (비우면 전체)<input value="'+ea(c.classes||'')+'" placeholder="예: 1~5 또는 1-1, 1-2" data-set="c:classes"></label>' +
+      '</div><p class="isu-hint">과목명은 선정 명단의 과목명과 같아야 명단을 가져올 수 있습니다(예: 공통영어1). 한 과목을 여러 선생님이 나눠 맡으면 담당 반을 적어 두세요. 명단을 가져올 때 그 반 학생만 들어옵니다.</p></div>';
 
     h += '<div class="isu-card"><h3>예방지도 시수를 보충지도로 인정하는 비율 (연계율)</h3>' +
       '<table class="isu-mini"><thead><tr><th>학생 구분</th><th>연계율(%)</th><th>인정 상한</th></tr></thead><tbody>';
@@ -2519,14 +2826,14 @@ var ISU = {
   /* ② 예방지도 출석 */
   prevView: function(c){
     var P = c.prev, n = P.count;
-    var src = STATE.prev.students || [], inList = src.filter(function(s){ return s.subjects && s.subjects[c.subject]; }).length;
+    var src = STATE.prev.students || [], inList = src.filter(function(s){ return s.subjects && s.subjects[c.subject] && ISU.inClasses(c, s.grade, s.cls); }).length;
     var h = '<div class="isu-toolbar">' +
       '<button class="btn btn-teal btn-sm" data-act="importPrev"'+(inList?'':' disabled')+'>예방지도 선정 명단에서 가져오기'+(inList?' ('+inList+'명)':'')+'</button>' +
       (inList ? '' : '<span class="isu-hint">'+(src.length ? '‘'+esc2(c.subject||'과목명')+'’에 선정된 학생이 없습니다. 과목명이 선정 명단과 같은지 확인하세요.' : '예방지도 탭에서 선정 명단을 먼저 올리면 여기로 가져올 수 있습니다.')+'</span>') +
       '<span class="sp"></span><button class="btn btn-navy2 btn-sm" data-act="print" data-what="prev">🖨 인쇄</button></div>';
     h += ISU.methodBar(c, 'prev');
     h += '<p class="isu-hint">참여한 날짜를 적으면(예: 5/14) 시수가 1씩 늘어납니다. 머리글에 날짜를 넣고 ‘↓’를 누르면 그 회차의 빈칸을 모두 채웁니다.</p>';
-    h += '<div class="isu-scroll"><table class="itbl"><thead><tr><th rowspan="3" class="c-no">순번</th><th rowspan="3">학번</th><th rowspan="3">이름</th><th rowspan="3">구분</th><th rowspan="3">참여<br>시수</th><th rowspan="3">인정<br>상한</th><th rowspan="3">운영 기간</th>';
+    h += '<div class="isu-scroll"><table class="itbl"><thead><tr><th rowspan="3" class="c-no stk1">순번</th><th rowspan="3" class="stk2">학번</th><th rowspan="3" class="stk3">이름</th><th rowspan="3">구분</th><th rowspan="3">참여<br>시수</th><th rowspan="3">인정<br>상한</th><th rowspan="3">운영 기간</th>';
     for (var j=0;j<n;j++) h += '<th class="c-s">'+(j+1)+'회</th>';
     h += '<th rowspan="3"></th></tr><tr>';
     for (j=0;j<n;j++) h += '<th class="c-s">'+ISU.methodSelect(c,'prev',j)+'</th>';
@@ -2536,7 +2843,7 @@ var ISU = {
     if (!P.students.length) h += '<tr><td colspan="'+(8+n)+'" class="isu-none">학생이 없습니다. 선정 명단에서 가져오거나 아래에서 추가하세요.</td></tr>';
     P.students.forEach(function(s, i){
       var hrs = ISU.prevHours(s);
-      h += '<tr><td class="c-no">'+(i+1)+'</td>'+ISU.sidCell(s.sid)+'<td class="nm">'+esc2(s.name)+'</td><td>'+ISU.typeSelect('ptype:'+i, s.type)+'</td>' +
+      h += '<tr><td class="c-no stk1">'+(i+1)+'</td>'+ISU.sidCell(s.sid,'stk2')+'<td class="nm stk3">'+esc2(s.name)+'</td><td>'+ISU.typeSelect('ptype:'+i, s.type)+'</td>' +
         '<td class="num'+(hrs?'':' z')+'">'+(hrs||'미참여')+'</td><td class="num">'+ISU.cap(c, s.type)+'</td><td class="per">'+esc2(ISU.period(s.dates))+'</td>';
       for (var j2=0;j2<n;j2++) h += '<td class="cell'+(s.dates[j2]?' on':'')+'"><input value="'+ea(s.dates[j2])+'" data-set="pdate:'+i+':'+j2+'"></td>';
       h += '<td><button class="isu-x" title="학생 삭제" data-act="delStu" data-t="prev" data-i="'+i+'">✕</button></td></tr>';
@@ -2547,8 +2854,8 @@ var ISU = {
 
   /* ③ 보충·추가 명단 */
   roster: function(c){
-    var bl = (STATE.boch.students||[]).filter(function(s){ return s.subjects && s.subjects[c.subject]; }).length;
-    var cl = (STATE.choo.students||[]).filter(function(s){ return s.subjects && s.subjects[c.subject]; }).length;
+    var bl = (STATE.boch.students||[]).filter(function(s){ return s.subjects && s.subjects[c.subject] && ISU.inClasses(c, s.grade, s.cls); }).length;
+    var cl = (STATE.choo.students||[]).filter(function(s){ return s.subjects && s.subjects[c.subject] && ISU.inClasses(c, s.grade, s.cls); }).length;
     var h = '<div class="isu-card"><h3>나이스 파일로 나누기</h3>' +
       '<p class="isu-hint" style="margin-top:0">나이스에서 내려받은 ‘최소 성취수준 보장지도 대상자’ 엑셀을 올리면 자동으로 나눕니다. 반별로 받은 파일을 여러 개 한꺼번에 올려도 됩니다.<br>' +
       '· 과목 출석률만 미도달(학업 성취율은 도달) → <b>추가학습</b> &nbsp;· 학업 성취율 미도달 → <b>보충지도</b></p>' +
@@ -2579,21 +2886,21 @@ var ISU = {
     var h = '<div class="isu-toolbar"><span class="isu-kpi"><b>'+P.students.length+'</b>명 중 <b class="ok">'+okCnt+'</b>명 충족 · 기준 '+ISU.needText(c,p)+' 이상</span>' +
       '<span class="sp"></span><button class="btn btn-navy2 btn-sm" data-act="print" data-what="'+p+'">🖨 인쇄</button></div>';
     h += ISU.methodBar(c, p);
-    h += '<p class="isu-hint">칸을 누를 때마다 O → X → 빈칸으로 바뀝니다. O 개수가 '+ISU_PROGS[p]+' 시수이고, 예방지도 인정 시수를 더해 충족 여부를 계산합니다.</p>';
-    h += '<div class="isu-scroll"><table class="itbl"><thead><tr><th rowspan="3" class="c-no">순번</th><th rowspan="3">학번</th><th rowspan="3">이름</th><th rowspan="3">구분</th><th rowspan="3">최종<br>충족</th><th rowspan="3">합계</th><th rowspan="3">예방<br>인정</th><th rowspan="3">예방지도 기간</th><th rowspan="3">'+ISU_PROGS[p].slice(0,2)+'<br>시수</th>';
-    for (var j=0;j<n;j++) h += '<th class="c-s">'+(j+1)+'</th>';
+    h += '<p class="isu-hint">참여한 날짜를 적으면(예: 7/14) '+ISU_PROGS[p]+' 시수가 1씩 늘어납니다. 머리글에 날짜를 넣고 ‘↓’를 누르면 그 회차의 빈칸을 모두 채웁니다. 예방지도 인정 시수를 더해 충족 여부를 바로 계산합니다.</p>';
+    h += '<div class="isu-scroll"><table class="itbl"><thead><tr><th rowspan="3" class="c-no stk1">순번</th><th rowspan="3" class="stk2">학번</th><th rowspan="3" class="stk3">이름</th><th rowspan="3">구분</th><th rowspan="3">최종<br>충족</th><th rowspan="3">합계</th><th rowspan="3">예방<br>인정</th><th rowspan="3">예방지도 기간</th><th rowspan="3">'+ISU_PROGS[p].slice(0,2)+'<br>시수</th>';
+    for (var j=0;j<n;j++) h += '<th class="c-s">'+(j+1)+'회</th>';
     h += '</tr><tr>';
     for (j=0;j<n;j++) h += '<th class="c-s">'+ISU.methodSelect(c,p,j)+'</th>';
     h += '</tr><tr>';
-    for (j=0;j<n;j++) h += '<th class="c-s"><div class="isu-dfill"><input value="'+ea(P.sessions[j].date)+'" placeholder="날짜" data-set="sdate:'+p+':'+j+'"><button title="모두 O" data-act="allO" data-p="'+p+'" data-j="'+j+'">O</button></div></th>';
+    for (j=0;j<n;j++) h += '<th class="c-s"><div class="isu-dfill"><input value="'+ea(P.sessions[j].date)+'" placeholder="날짜" data-set="sdate:'+p+':'+j+'"><button title="빈칸 채우기" data-act="fillProg" data-p="'+p+'" data-j="'+j+'">↓</button></div></th>';
     h += '</tr></thead><tbody>';
     if (!P.students.length) h += '<tr><td colspan="'+(9+n)+'" class="isu-none">학생이 없습니다. ‘보충·추가 명단’ 단계에서 학생을 넣으세요.</td></tr>';
     P.students.forEach(function(s, i){
       var r = ISU.row(c, p, s);
-      h += '<tr><td class="c-no">'+(i+1)+'</td>'+ISU.sidCell(s.sid)+'<td class="nm">'+esc2(s.name)+'</td><td>'+ISU.typeSelect('rtype:'+p+':'+i, s.type)+'</td>' +
+      h += '<tr><td class="c-no stk1">'+(i+1)+'</td>'+ISU.sidCell(s.sid,'stk2')+'<td class="nm stk3">'+esc2(s.name)+'</td><td>'+ISU.typeSelect('rtype:'+p+':'+i, s.type)+'</td>' +
         '<td><span class="isu-badge '+(r.ok?'ok':'no')+'">'+(r.ok?'충족':'미충족')+'</span></td><td class="num">'+r.total+'</td>' +
         '<td class="num'+(r.lk.joined?'':' z')+'">'+(r.lk.joined?r.lk.link:'미참여')+'</td><td class="per">'+esc2(r.lk.period)+'</td><td class="num">'+r.att+'</td>';
-      for (var j2=0;j2<n;j2++) { var m = s.marks[j2]; h += '<td class="mk '+(m==='O'?'o':m==='X'?'x':'')+'"><button data-act="mark" data-p="'+p+'" data-i="'+i+'" data-j="'+j2+'">'+(m||'')+'</button></td>'; }
+      for (var j2=0;j2<n;j2++) h += '<td class="cell'+(s.dates[j2]?' on':'')+'"><input value="'+ea(s.dates[j2])+'" data-set="bdate:'+p+':'+i+':'+j2+'"></td>';
       h += '</tr>';
     });
     return h + '</tbody></table></div>';
@@ -2649,6 +2956,7 @@ var ISU = {
   onChange: function(el){
     var c = ISU.course(), path = el.dataset.set.split(':'), v = el.value, k = path[0], rer = true;
     if (k === 'sumKey') { ISU.sumKey = v; return ISU.renderSoon(); }
+    if (k === 'filterTeacher') { ISU.filterTeacher = v; return ISU.renderSoon(); }
     if (!c) return;
     if (k === 'c') {
       var f = path[1];
@@ -2662,6 +2970,7 @@ var ISU = {
       }
       if (f === 'capMode') DB.data.settings.capMode = v;
       if (f === 'teacher') DB.data.settings.teacher = v;
+      if (f === 'owner') { var tt = AUTH.teachers.filter(function(x){ return x.id === v; })[0]; if (tt) c.teacher = tt.name; }
     } else if (k === 'rate') {
       var od = ISU.prevDefault(c); c.rates[path[1]] = v === '' ? '' : Number(v);
       if (c.prev.count === od) { c.prev.count = ISU.prevDefault(c); ISU.resize(c); }
@@ -2688,6 +2997,16 @@ var ISU = {
       tds[4].textContent = hrs || '미참여'; tds[4].className = 'num' + (hrs ? '' : ' z');
       tds[6].textContent = ISU.period(s.dates);
     }
+    else if (k === 'bdate') {
+      var pp = path[1], bs = c[pp].students[+path[2]], jj = +path[3];
+      bs.dates[jj] = ISU.normDate(v); el.value = bs.dates[jj]; rer = false;
+      el.parentNode.classList.toggle('on', !!bs.dates[jj]);
+      var rr = ISU.row(c, pp, bs), tds2 = el.closest('tr').children;
+      tds2[4].innerHTML = '<span class="isu-badge '+(rr.ok?'ok':'no')+'">'+(rr.ok?'충족':'미충족')+'</span>';
+      tds2[5].textContent = rr.total; tds2[8].textContent = rr.att;
+      var kp = document.querySelector('#isu-root .isu-kpi .ok');
+      if (kp) kp.textContent = c[pp].students.filter(function(x){ return ISU.row(c,pp,x).ok; }).length;
+    }
     else if (k === 'ptype') { c.prev.students[+path[1]].type = v; }
     else if (k === 'rtype') { c[path[1]].students[+path[2]].type = v; }
     c.updatedAt = new Date().toISOString();
@@ -2702,16 +3021,40 @@ var ISU = {
   onClick: function(el, ev){
     var a = el.dataset.act, c = ISU.course();
     if (a === 'new') return ISU.newCourse();
-    if (a === 'open') { DB.data.current = el.dataset.id; ISU.view = 'course'; DB.save(); return ISU.render(); }
+    if (a === 'open') { if (DB.data.current !== el.dataset.id) ISU.step = 'info'; DB.data.current = el.dataset.id; ISU.view = 'course'; if (!SRV) DB.save(); return ISU.render(); }
     if (a === 'summary') { ISU.view = 'summary'; return ISU.render(); }
+    if (a === 'home') { ISU.view = 'home'; return ISU.render(); }
+    if (a === 'accounts') { ISU.view = 'accounts'; ISU.accounts = null; return ISU.render(); }
+    if (a === 'password') { ISU.view = 'password'; return ISU.render(); }
+    if (a === 'logout') return Login.logout();
+    if (a === 'go') { DB.data.current = el.dataset.id; ISU.view = 'course'; ISU.step = el.dataset.step; return ISU.render(); }
+    if (a === 'toSheet') return ISU.toSheet();
+    if (a === 'pwSave') return ISU.changePassword();
+    if (a === 'accAdd') {
+      var q = function(f){ return document.querySelector('#isu-root [data-acc="'+f+'"]'); };
+      return ISU.saveAccount({ id:q('id').value.trim(), name:q('name').value.trim(), role:q('role').value, password:q('password').value })
+        .then(function(){ ISU.toast('계정을 만들었습니다. 아이디와 처음 비밀번호를 선생님께 알려 주세요.'); }, function(){});
+    }
+    if (a === 'accReset' || a === 'accRole' || a === 'accActive') {
+      var ac = ISU.account(el.dataset.id); if (!ac) return;
+      if (a === 'accRole') return ISU.saveAccount({ id:ac.id, name:ac.name, role: ac.role === 'admin' ? 'teacher' : 'admin', active:ac.active });
+      if (a === 'accActive') {
+        if (ac.active && !confirm(ac.name+' 선생님 계정을 사용 중지할까요? 로그인할 수 없게 되지만 입력한 과목 기록은 그대로 남습니다.')) return;
+        return ISU.saveAccount({ id:ac.id, name:ac.name, role:ac.role, active: !ac.active });
+      }
+      return __askText(ac.name+' 선생님의 새 임시 비밀번호(6자 이상)', '').then(function(pw){
+        if (pw === null) return;
+        SRV.call('resetPassword', { id:ac.id, password:pw }).then(function(){ ISU.toast('임시 비밀번호로 바꿨습니다. 다음 로그인 때 새 비밀번호로 바꾸게 됩니다.'); ISU.accounts = null; ISU.render(); }, function(e){ ISU.toast(e.message || e.error); });
+      });
+    }
     if (a === 'backup') return ISU.exportBackup();
     if (a === 'folder') return STORE.openFolder && STORE.openFolder();
     if (a === 'exportSummary') return ISU.exportSummary();
     if (!c) return;
     if (a === 'step') { ISU.step = el.dataset.step; return ISU.render(); }
     if (a === 'delCourse') {
-      if (!confirm('‘'+(c.subject||'새 과목')+'’ 과목과 입력한 출석 기록을 모두 지울까요? 지우기 전에 ‘과목 파일 내보내기’로 보관해 둘 수 있습니다.')) return;
-      DB.data.courses = DB.data.courses.filter(function(x){ return x !== c; }); DB.data.current = DB.data.courses[0] ? DB.data.courses[0].id : null;
+      if (!confirm('‘'+(c.subject||'새 과목')+'’ 과목과 입력한 출석 기록을 모두 지울까요?' + (SRV ? ' 학교 시트에서도 지워집니다.' : ' 지우기 전에 ‘과목 파일 내보내기’로 보관해 둘 수 있습니다.'))) return;
+      DB.data.courses = DB.data.courses.filter(function(x){ return x !== c; }); DB.data.current = null; ISU.view = 'home';
       DB.save(); return ISU.render();
     }
     if (a === 'exportCourse') return ISU.exportCourse(c);
@@ -2725,17 +3068,9 @@ var ISU = {
       var d = c.prev.sessions[j].date; if (!d) { ISU.toast('먼저 그 회차 머리글에 날짜를 넣으세요.'); return; }
       c.prev.students.forEach(function(s){ if (!s.dates[j]) s.dates[j] = d; });
     }
-    else if (a === 'allO') c[p].students.forEach(function(s){ if (!s.marks[j]) s.marks[j] = 'O'; });
-    else if (a === 'mark') {
-      var s = c[p].students[i]; s.marks[j] = s.marks[j] === 'O' ? 'X' : s.marks[j] === 'X' ? '' : 'O';
-      c.updatedAt = new Date().toISOString(); DB.save();
-      el.textContent = s.marks[j]; el.parentNode.className = 'mk ' + (s.marks[j]==='O'?'o':s.marks[j]==='X'?'x':'');
-      var r = ISU.row(c, p, s), tds = el.closest('tr').children;
-      tds[4].innerHTML = '<span class="isu-badge '+(r.ok?'ok':'no')+'">'+(r.ok?'충족':'미충족')+'</span>';
-      tds[5].textContent = r.total; tds[8].textContent = r.att;
-      var kp = document.querySelector('#isu-root .isu-kpi .ok');
-      if (kp) kp.textContent = c[p].students.filter(function(x){ return ISU.row(c,p,x).ok; }).length;
-      return;
+    else if (a === 'fillProg') {
+      var dd = c[p].sessions[j].date; if (!dd) { ISU.toast('먼저 그 회차 머리글에 날짜를 넣으세요.'); return; }
+      c[p].students.forEach(function(s){ if (!s.dates[j]) s.dates[j] = dd; });
     }
     else if (a === 'delStu') {
       var t = el.dataset.t, st = c[t].students[i];
@@ -2745,7 +3080,7 @@ var ISU = {
     else if (a === 'moveStu') {
       var other = p === 'boch' ? 'choo' : 'boch', mv = c[p].students[i];
       if (c[other].students.some(function(x){ return x.sid === mv.sid; })) { ISU.toast('이미 '+ISU_PROGS[other]+' 명단에 있는 학생입니다.'); return; }
-      c[p].students.splice(i,1); mv.marks = []; c[other].students.push(mv); ISU.resize(c); ISU.sortList(c[other].students);
+      c[p].students.splice(i,1); mv.dates = []; c[other].students.push(mv); ISU.resize(c); ISU.sortList(c[other].students);
     }
     else if (a === 'addStu') return ISU.addStudent(c, el.dataset.t);
     else if (a === 'importPrev') return ISU.importFromList(c, 'prev', 'prev');
@@ -2757,7 +3092,7 @@ var ISU = {
   sortList: function(arr){ arr.sort(function(a,b){ return String(a.sid).localeCompare(String(b.sid), undefined, { numeric:true }); }); },
   makeStudent: function(c, target, sid, name, type){
     var s = { sid: sid, name: name, type: type || '일반학생' };
-    if (target === 'prev') s.dates = []; else s.marks = [];
+    s.dates = [];
     return s;
   },
   addStudent: function(c, t){
@@ -2772,7 +3107,7 @@ var ISU = {
     var nq = document.querySelector('#isu-root [data-add="sid"][data-t="'+t+'"]'); if (nq) nq.focus();
   },
   importFromList: function(c, app, target){
-    var src = (STATE[app].students||[]).filter(function(s){ return s.subjects && s.subjects[c.subject]; });
+    var src = (STATE[app].students||[]).filter(function(s){ return s.subjects && s.subjects[c.subject] && ISU.inClasses(c, s.grade, s.cls); });
     var added = 0;
     src.forEach(function(s){
       var sid = makeStudentId(s.grade, s.cls, s.num);
@@ -2797,7 +3132,7 @@ var ISU = {
           ISU.sortList(c.boch.students); ISU.sortList(c.choo.students); ISU.resize(c); c.updatedAt = new Date().toISOString(); DB.save(); ISU.render();
           var msg = '보충지도 '+stat.boch+'명, 추가학습 '+stat.choo+'명을 넣었습니다.';
           if (stat.dup) msg += ' 이미 있는 학생 '+stat.dup+'명은 건너뜀.';
-          if (stat.other) msg += ' 다른 과목 '+stat.other+'행 제외.';
+          if (stat.other) msg += ' 다른 과목·담당 반이 아닌 '+stat.other+'행 제외.';
           if (stat.skip) msg += ' 대상이 아닌 '+stat.skip+'행 제외.';
           if (stat.bad.length) msg += ' 읽지 못한 파일: '+stat.bad.join(' / ');
           ISU.toast(msg);
@@ -2844,6 +3179,7 @@ var ISU = {
       var g = col.grade !== undefined ? parseInt(r[col.grade],10) : c.grade;
       var cl = parseInt(String(r[col.cls]).replace(/\D/g,''),10), nm = parseInt(String(r[col.num]).replace(/\D/g,''),10);
       if (!cl || !nm) { stat.skip++; return; }
+      if (!ISU.inClasses(c, g || c.grade, cl)) { stat.other++; return; }
       var sid = makeStudentId(g || c.grade, cl, nm), name = String(r[col.name]).trim();
       if (c.boch.students.some(function(x){ return x.sid === sid; }) || c.choo.students.some(function(x){ return x.sid === sid; })) { stat.dup++; return; }
       var pv = c.prev.students.filter(function(x){ return x.sid === sid; })[0];
@@ -2888,6 +3224,10 @@ var ISU = {
         else list.forEach(function(nc){
           ISU.normalize(nc); nc.importedAt = new Date().toISOString();
           var i = DB.data.courses.map(function(x){ return x.id; }).indexOf(nc.id);
+          if (SRV) {
+            if (!isAdmin() || !nc.owner || !AUTH.teachers.some(function(t){ return t.id === nc.owner; })) { nc.owner = AUTH.user.id; nc.teacher = AUTH.user.name; }
+            nc.version = i >= 0 ? DB.data.courses[i].version : 0;
+          }
           if (i >= 0) { DB.data.courses[i] = nc; replaced++; } else { DB.data.courses.push(nc); added++; }
         });
         if (--pending === 0) {
@@ -2913,7 +3253,7 @@ var ISU = {
     var h1 = ['순번','학번','이름','구분','최종 충족','합계','예방 인정','예방지도 기간',ISU_PROGS[p]+' 시수'], h2 = ['','','','','','','','','운영방법'], h3 = ['','','','','','','','','날짜'];
     for (var j=0;j<n;j++){ h1.push(j+1); h2.push(c[p].sessions[j].method||''); h3.push(c[p].sessions[j].date||''); }
     aoa.push(h1, h2, h3);
-    c[p].students.forEach(function(s,i){ var r = ISU.row(c,p,s); aoa.push([i+1, s.sid, s.name, s.type, r.ok?'충족':'미충족', r.total, r.lk.joined?r.lk.link:'미참여', r.lk.period, r.att].concat(s.marks.map(function(m){ return m||''; }))); });
+    c[p].students.forEach(function(s,i){ var r = ISU.row(c,p,s); aoa.push([i+1, s.sid, s.name, s.type, r.ok?'충족':'미충족', r.total, r.lk.joined?r.lk.link:'미참여', r.lk.period, r.att].concat(s.dates.map(function(m){ return m||''; }))); });
     return XLSX.utils.aoa_to_sheet(aoa);
   },
   sheetResult: function(c){
@@ -2954,6 +3294,27 @@ var ISU = {
     saveXlsx(wb, '학교전체_이수결과_'+p[0]+'-'+p[1]+'학기.xlsx');
   },
 
+  summaryRows: function(key){
+    var rows = [['학년','과목','담당 교사','담당 반','구분','학생 구분','학번','성명','예방지도 인정시간','이수시간','합계','운영 시수','최종 충족여부']];
+    DB.data.courses.filter(function(c){ return ISU.semKey(c) === key; }).forEach(function(c){
+      ['boch','choo'].forEach(function(p){ ISU.resultRows(c,p).forEach(function(r){ rows.push([c.grade, c.subject, c.teacher||'', c.classes||'', ISU_PROGS[p], r.type, r.sid, r.name, r.link, r.att, r.total, c[p].hours, r.ok?'충족':'미충족']); }); });
+    });
+    return rows;
+  },
+  toSheet: function(){
+    var rows = ISU.summaryRows(ISU.sumKey);
+    SRV.call('exportResults', { label: ISU.sumKey.replace('-', '-')+'학기', rows: rows }).then(function(r){
+      ISU.toast('구글 시트에 ‘'+r.sheet+'’ 탭을 만들었습니다('+(rows.length-1)+'명).');
+    }, function(e){ ISU.toast(e.message || e.error); });
+  },
+  changePassword: function(){
+    var q = function(f){ var x = document.querySelector('#isu-root [data-pw="'+f+'"]'); return x ? x.value : ''; };
+    if (q('new') !== q('new2')) return ISU.toast('새 비밀번호 두 칸이 서로 다릅니다.');
+    SRV.call('changePassword', { old: q('old'), password: q('new') }).then(function(r){
+      AUTH.user = r.user; ISU.view = 'home'; ISU.render(); ISU.toast('비밀번호를 바꿨습니다.');
+    }, function(e){ ISU.toast(e.message || e.error); });
+  },
+
   /* ── 인쇄 ── */
   print: function(c, what){
     var title, body = '', land = what !== 'result';
@@ -2965,8 +3326,8 @@ var ISU = {
       body = tbl(hd, c.prev.students.map(function(s,i){ return [i+1, s.sid, s.name, s.type, ISU.prevHours(s)||'미참여', ISU.period(s.dates)].concat(s.dates); }));
     } else if (what === 'boch' || what === 'choo') {
       title = '최소 성취수준 보장 '+ISU_PROGS[what]+' 출석부';
-      var hd2 = ['순번','학번','이름','구분','충족','합계','예방','시수'].concat(c[what].sessions.map(function(s,j){ return (j+1)+'<br><small>'+esc2(s.date||'')+'</small>'; }));
-      body = tbl(hd2, c[what].students.map(function(s,i){ var r = ISU.row(c,what,s); return [i+1, s.sid, s.name, s.type, r.ok?'충족':'미충족', r.total, r.lk.joined?r.lk.link:'미참여', r.att].concat(s.marks); }));
+      var hd2 = ['순번','학번','이름','구분','충족','합계','예방','시수'].concat(c[what].sessions.map(function(s,j){ return (j+1)+'<br><small>'+esc2(s.method||'')+'</small>'; }));
+      body = tbl(hd2, c[what].students.map(function(s,i){ var r = ISU.row(c,what,s); return [i+1, s.sid, s.name, s.type, r.ok?'충족':'미충족', r.total, r.lk.joined?r.lk.link:'미참여', r.att].concat(s.dates); }));
     } else {
       title = '최소 성취수준 보장지도 이수 결과';
       ['boch','choo'].forEach(function(p){
@@ -3000,6 +3361,7 @@ function ea(s){ return esc2(s).replace(/"/g,'&quot;'); }
     if (el.dataset && el.dataset.file) { var fs = Array.prototype.slice.call(el.files||[]); el.value = ''; if (!fs.length) return;
       if (el.dataset.file === 'neis') ISU.importNeis(fs); else ISU.importFiles(el.dataset.file, fs); return; }
     if (el.dataset && el.dataset.set) ISU.onChange(el);
+    if (el.dataset && el.dataset.accname) { var ac = ISU.account(el.dataset.accname); if (ac && el.value.trim() && el.value.trim() !== ac.name) ISU.saveAccount({ id:ac.id, name:el.value.trim(), role:ac.role, active:ac.active }).then(function(){ ISU.toast('이름을 바꿨습니다.'); }, function(){}); }
   });
   document.addEventListener('mousedown', function(){ ISU.mouseDown = true; }, true);
   document.addEventListener('mouseup', function(){
@@ -3013,9 +3375,107 @@ function ea(s){ return esc2(s).replace(/"/g,'&quot;'); }
   });
 })();
 
-/* ── 시작: 저장된 데이터 불러오기 ── */
-DB.load().then(function(){ restoreLists(); ISU.render(); });
+/* ── 로그인 (서버 모드) ── */
+var Login = {
+  mode: 'login', school: '', msg: '',
+  el: function(){
+    var o = document.getElementById('login-ov');
+    if (!o) { o = document.createElement('div'); o.id = 'login-ov'; document.body.appendChild(o);
+      o.addEventListener('submit', function(e){ e.preventDefault(); Login.submit(); });
+      o.addEventListener('click', function(e){ if (e.target.dataset && e.target.dataset.lact === 'retry') Login.start(); }); }
+    return o;
+  },
+  start: function(){
+    document.body.classList.add('locked');
+    var t = null; try { t = localStorage.getItem('isu-token'); } catch(e) {}
+    Login.el().innerHTML = '<div class="lg-card"><div class="lg-brand"><span class="mark"></span><b>최소 성취수준 보장지도</b></div><p class="lg-sub">연결하는 중…</p></div>';
+    var go = function(){ return SRV.call('status').then(function(r){ Login.school = r.school || ''; Login.show(r.needsSetup ? 'setup' : 'login'); }); };
+    var p = t ? (AUTH.token = t, Login.boot().catch(function(){ AUTH.token = null; try { localStorage.removeItem('isu-token'); } catch(e) {} return go(); })) : go();
+    p.catch(function(e){ Login.el().innerHTML = '<div class="lg-card"><div class="lg-brand"><span class="mark"></span><b>최소 성취수준 보장지도</b></div><p class="lg-err">서버에 연결하지 못했습니다. 인터넷 연결을 확인해 주세요.<br><small>'+esc2(e.message||e.error||'')+'</small></p><button class="btn btn-teal" data-lact="retry">다시 시도</button></div>'; });
+  },
+  show: function(mode){
+    Login.mode = mode; document.body.classList.add('locked');
+    var f = function(k, label, type, ph, ac){ return '<label>'+label+'<input name="'+k+'" type="'+(type||'text')+'" placeholder="'+(ph||'')+'" autocomplete="'+(ac||'off')+'"></label>'; };
+    var h = '<form class="lg-card"><div class="lg-brand"><span class="mark"></span><b>최소 성취수준 보장지도</b></div>' + (Login.school ? '<p class="lg-school">'+esc2(Login.school)+'</p>' : '');
+    if (mode === 'setup') {
+      h += '<h2>처음 설정: 관리자 계정 만들기</h2><p class="lg-sub">최소 성취수준 보장지도 담당 선생님 계정입니다. 이 계정으로 선생님 계정을 만들고 전체를 관리합니다.</p>' +
+        f('school','학교 이름','text','예: 광주경신여자고등학교') + f('name','이름','text','예: 홍길동') + f('id','아이디','text','영문으로 시작 (예: admin)','username') +
+        f('password','비밀번호 (6자 이상)','password','','new-password') + f('password2','비밀번호 확인','password','','new-password') +
+        '<button class="btn btn-teal lg-go" type="submit">관리자 계정 만들고 시작</button>';
+    } else if (mode === 'change') {
+      h += '<h2>새 비밀번호 정하기</h2><p class="lg-sub">처음 로그인했거나 비밀번호가 초기화되었습니다. 앞으로 쓸 비밀번호를 정해 주세요.</p>' +
+        f('password','새 비밀번호 (6자 이상)','password','','new-password') + f('password2','새 비밀번호 확인','password','','new-password') +
+        '<button class="btn btn-teal lg-go" type="submit">저장하고 시작</button>';
+    } else {
+      h += (mode === 'expired' ? '<p class="lg-warn">로그인 시간이 지났습니다. 다시 로그인하면 입력하던 내용을 이어서 저장합니다.</p>' : '<h2>로그인</h2>') +
+        f('id','아이디','text','','username') + f('password','비밀번호','password','','current-password') +
+        '<button class="btn btn-teal lg-go" type="submit">로그인</button><p class="lg-sub" style="margin-top:12px">아이디나 비밀번호를 모르면 최소 성취수준 보장지도 담당 선생님께 문의하세요.</p>';
+    }
+    h += '<p class="lg-err" id="lg-err">'+esc2(Login.msg||'')+'</p></form>';
+    Login.msg = '';
+    Login.el().innerHTML = h; Login.el().style.display = '';
+    var first = Login.el().querySelector('input'); if (first) first.focus();
+  },
+  val: function(k){ var x = Login.el().querySelector('[name="'+k+'"]'); return x ? x.value : ''; },
+  err: function(m){ var e = document.getElementById('lg-err'); if (e) e.textContent = m; var b = Login.el().querySelector('.lg-go'); if (b) b.disabled = false; },
+  submit: function(){
+    var b = Login.el().querySelector('.lg-go'); if (b) b.disabled = true;
+    var done = function(r){ AUTH.token = r.token; try { localStorage.setItem('isu-token', r.token); } catch(e) {} AUTH.user = r.user;
+      if (r.user.mustChange) return Login.show('change');
+      if (Login.mode === 'expired' && DB.data) { Login.hide(); DB.flush(); return; }
+      return Login.boot(); };
+    var fail = function(e){ Login.err(e.message || e.error || '다시 시도해 주세요.'); };
+    if (Login.mode === 'setup') {
+      if (Login.val('password') !== Login.val('password2')) return Login.err('비밀번호 두 칸이 서로 다릅니다.');
+      return SRV.call('setup', { school:Login.val('school'), name:Login.val('name'), id:Login.val('id'), password:Login.val('password') }).then(done, fail);
+    }
+    if (Login.mode === 'change') {
+      if (Login.val('password') !== Login.val('password2')) return Login.err('비밀번호 두 칸이 서로 다릅니다.');
+      return SRV.call('changePassword', { password:Login.val('password') }).then(function(r){ AUTH.user = r.user; return Login.boot(); }, fail);
+    }
+    return SRV.call('login', { id:Login.val('id'), password:Login.val('password') }).then(done, fail);
+  },
+  boot: function(){
+    return SRV.call('bootstrap').then(function(r){
+      AUTH.user = r.user; AUTH.teachers = r.teachers || [];
+      if (r.user.mustChange) { Login.show('change'); return; }
+      var st = r.settings || {};
+      DB.data = Object.assign(DB.blank(), { courses: r.courses || [], lists: r.lists || {}, chooCustom: st.chooCustom || [],
+        settings: { capMode: st.capMode || 'x3', teacher: r.user.name }, current: null });
+      DB.data.courses.forEach(ISU.normalize);
+      DB.takeSnap();
+      ISU.view = 'home'; ISU.accounts = null;
+      Login.applyRole(st.school);
+      restoreLists();
+      Login.hide();
+      var t = Array.prototype.filter.call(document.querySelectorAll('.app-tab'), function(b){ return /이수 관리/.test(b.textContent); })[0];
+      switchApp('isu', t);
+    });
+  },
+  applyRole: function(school){
+    var admin = isAdmin();
+    document.querySelectorAll('.app-tab').forEach(function(b){
+      var m = (b.getAttribute('onclick')||'').match(/switchApp\('(\w+)'/); var app = m && m[1];
+      if (app === 'prev' || app === 'boch' || app === 'choo') b.style.display = admin ? '' : 'none';
+    });
+    var hdr = document.querySelector('header'), w = document.getElementById('who');
+    if (!w) { w = document.createElement('div'); w.id = 'who'; hdr.appendChild(w); }
+    w.innerHTML = '<span class="who-n">'+esc2(AUTH.user.name)+'</span><span class="who-r">'+(admin ? '관리자' : '교과 교사')+'</span>' + (school ? '<span class="who-s">'+esc2(school)+'</span>' : '');
+    var sub = document.querySelector('header .sub'); if (sub && school) sub.textContent = school;
+  },
+  hide: function(){ document.body.classList.remove('locked'); var o = document.getElementById('login-ov'); if (o) o.style.display = 'none'; },
+  logout: function(){
+    Promise.resolve(DB.flush()).then(function(){ return SRV.call('logout'); }).catch(function(){}).then(function(){
+      try { localStorage.removeItem('isu-token'); } catch(e) {}
+      AUTH.token = null; AUTH.user = null; DB.data = null;
+      location.reload();
+    });
+  }
+};
 
+/* ── 시작 ── */
+if (SRV) Login.start();
+else DB.load().then(function(){ restoreLists(); ISU.render(); });
 </script>
 <script>
 window.__askText=function(msg,def){return new Promise(function(res){

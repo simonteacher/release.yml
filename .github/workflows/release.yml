@@ -10,6 +10,7 @@ on:
       - 'index.html'
       - 'main.js'
       - 'preload.js'
+      - 'config.json'
       - 'fonts/**'
       - 'package.json'
       - 'package-lock.json'
