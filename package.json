@@ -1,0 +1,69 @@
+{
+  "name": "achievement-guidance",
+  "productName": "최소성취수준보장지도",
+  "version": "1.0.0",
+  "description": "최소 성취수준 보장지도 시스템",
+  "author": "school",
+  "main": "main.js",
+  "build": {
+    "appId": "kr.school.achievement-guidance",
+    "productName": "최소성취수준보장지도",
+    "files": [
+      "main.js",
+      "index.html",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "최소성취수준보장지도",
+      "deleteAppDataOnUninstall": true,
+      "artifactName": "AchievementGuidance-Setup-${version}.${ext}"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "simonteacher",
+        "repo": "release.yml",
+        "releaseType": "release"
+      }
+    ],
+    "releaseInfo": {
+      "releaseNotesFile": "build/release-notes.md"
+    },
+    "compression": "maximum"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --publish never"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/simonteacher/release.yml.git"
+  }
+}
