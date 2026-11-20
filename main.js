@@ -178,7 +178,14 @@ function create() {
   });
   win.once('ready-to-show', () => { win.maximize(); win.show(); });
   if (WEBAPP_URL) {
-    win.loadURL(WEBAPP_URL);
+    // 웹앱이 뜨기 전까지 빈 창 대신 안내 화면을 보여 주고, 곧바로 웹앱으로 넘어감
+    const splash = '<meta charset="utf-8"><style>@keyframes s{to{transform:rotate(360deg)}}</style>' +
+      '<body style="margin:0;font-family:Malgun Gothic,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#f4f5f7;color:#1c2433">' +
+      '<div style="text-align:center"><div style="width:34px;height:34px;margin:0 auto 16px;border:3px solid #d9cff0;border-top-color:#5b3d99;border-radius:50%;animation:s .8s linear infinite"></div>' +
+      '<div style="font-size:17px;font-weight:700">학교 서버에 연결하는 중입니다…</div>' +
+      '<div style="color:#667085;margin-top:6px;font-size:13px">처음 열 때는 몇 초 걸릴 수 있습니다.</div></div>' +
+      '<script>setTimeout(function(){ location.replace(' + JSON.stringify(WEBAPP_URL) + '); }, 50)</script></body>';
+    win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(splash));
     // 인터넷이 끊겼을 때 안내 화면
     win.webContents.on('did-fail-load', (e, code, desc, url, isMainFrame) => {
       if (!isMainFrame || code === -3) return;

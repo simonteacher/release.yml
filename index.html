@@ -434,7 +434,7 @@ table.itbl td.todo{text-align:left;font-size:12.5px;color:var(--ink-2)}
 #who{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;padding:0 4px}
 #who .who-n{font-weight:700}#who .who-r{font-size:11.5px;background:var(--pc-soft);color:var(--pc-ink);border-radius:999px;padding:2px 8px;font-weight:650}
 #who .who-s{font-size:12px;color:var(--muted)}
-body.locked>*:not(#login-ov){visibility:hidden}
+body.locked>*:not(#login-ov):not(#busy-ov){visibility:hidden}
 #login-ov{position:fixed;inset:0;z-index:100;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
 .lg-card{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 28px 22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px rgba(28,36,51,.08)}
 .lg-brand{display:flex;align-items:center;gap:10px}.lg-brand .mark{width:30px;height:30px;border-radius:8px;background:#5b3d99;position:relative}.lg-brand .mark::after{content:'';position:absolute;inset:8px;border:2.5px solid #fff;border-radius:50%}
@@ -464,6 +464,15 @@ body.locked>*:not(#login-ov){visibility:hidden}
 a.btn{text-decoration:none}
 #isu-root textarea[data-bulk]{width:100%;border:1px solid var(--line-2);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;line-height:1.6;resize:vertical}
 #isu-root textarea[data-bulk]:focus{outline:none;border-color:var(--pc);box-shadow:0 0 0 3px var(--pc-soft)}
+#busy-ov{position:fixed;left:0;right:0;top:14px;display:flex;justify-content:center;z-index:200;pointer-events:none;opacity:0;transform:translateY(-8px);transition:opacity .15s,transform .15s}
+#busy-ov.on{opacity:1;transform:none}
+#busy-ov.block{inset:0;top:0;align-items:center;background:rgba(244,245,247,.72);pointer-events:auto}
+.busy-box{display:flex;align-items:center;gap:10px;background:var(--ink);color:#fff;border-radius:999px;padding:10px 18px;font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(28,36,51,.18)}
+#busy-ov.block .busy-box{border-radius:14px;padding:18px 26px;font-size:15.5px}
+.busy-spin{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:busyspin .8s linear infinite;vertical-align:-3px}
+.lg-sub .busy-spin{border-color:#d9cff0;border-top-color:#5b3d99}
+@keyframes busyspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.busy-spin{animation-duration:2.4s}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{
   header,.app-tabs,.sub-tabs,.sem-bar,.toolbar,.btn,.step-card,.attend-toolbar,.stats-bar{display:none!important}
@@ -2289,13 +2298,36 @@ document.querySelector('.app-tab').classList.add('active');
    ══════════════════════════════════════════════════════════════ */
 
 /* ── 서버(구글 시트) 연결: Apps Script 웹앱 안에서 열리면 자동으로 서버 모드 ── */
+/* ── 기다리는 동안 '~ 중입니다' 안내 ── */
+var BUSY_MSG = {
+  status: '서버에 연결하는 중입니다…', login: '로그인 중입니다…', setup: '관리자 계정을 만드는 중입니다…',
+  bootstrap: '데이터를 불러오는 중입니다…', changePassword: '비밀번호를 바꾸는 중입니다…',
+  lists: '명단을 불러오는 중입니다…', accounts: '계정 목록을 불러오는 중입니다…', saveAccount: '계정을 저장하는 중입니다…',
+  resetPassword: '비밀번호를 초기화하는 중입니다…', exportResults: '구글 시트에 이수결과를 만드는 중입니다…', log: '기록을 불러오는 중입니다…'
+};
+var BUSY_BLOCK = { status:1, login:1, setup:1, bootstrap:1, changePassword:1 };
+var Busy = {
+  jobs: [], seq: 0,
+  start: function(msg, block){ var id = ++Busy.seq; Busy.jobs.push({ id:id, msg:msg, block:!!block }); Busy.paint(); return id; },
+  end: function(id){ Busy.jobs = Busy.jobs.filter(function(j){ return j.id !== id; }); Busy.paint(); },
+  paint: function(){
+    var el = document.getElementById('busy-ov');
+    if (!el) { el = document.createElement('div'); el.id = 'busy-ov'; el.innerHTML = '<div class="busy-box"><span class="busy-spin"></span><span class="busy-msg"></span></div>'; document.body.appendChild(el); }
+    var top = Busy.jobs[Busy.jobs.length - 1];
+    clearTimeout(Busy._t);
+    if (!top) { el.className = ''; return; }
+    var show = function(){ el.querySelector('.busy-msg').textContent = top.msg; el.className = 'on' + (Busy.jobs.some(function(j){ return j.block; }) ? ' block' : ''); };
+    if (el.className) show(); else Busy._t = setTimeout(show, 150);   // 아주 빨리 끝나는 일은 깜빡이지 않게
+  }
+};
 var SRV = (typeof google !== 'undefined' && google.script && google.script.run) ? {
-  call: function(action, payload, token){
-    var tok = token === undefined ? AUTH.token : token;   // 로그아웃 뒤에도 앞 사람 저장은 앞 사람 이름으로
+  call: function(action, payload, token, opts){
+    var tok = token === undefined || token === null ? AUTH.token : token;   // 로그아웃 뒤에도 앞 사람 저장은 앞 사람 이름으로
+    var bid = (!(opts && opts.silent) && BUSY_MSG[action]) ? Busy.start(BUSY_MSG[action], BUSY_BLOCK[action]) : 0;
     return new Promise(function(res, rej){
       google.script.run
-        .withSuccessHandler(function(r){ if (r && r.ok) res(r); else rej(r || { error:'SERVER', message:'응답이 없습니다.' }); })
-        .withFailureHandler(function(e){ rej({ error:'NETWORK', message:(e && e.message) || String(e) }); })
+        .withSuccessHandler(function(r){ if (bid) Busy.end(bid); if (r && r.ok) res(r); else rej(r || { error:'SERVER', message:'응답이 없습니다.' }); })
+        .withFailureHandler(function(e){ if (bid) Busy.end(bid); rej({ error:'NETWORK', message:(e && e.message) || String(e) }); })
         .api(tok, action, payload || {});
     });
   }
@@ -2326,7 +2358,7 @@ var DB = {
     if (!DB.data) return;
     DB.pending = true; clearTimeout(DB.timer);
     DB.timer = setTimeout(DB.flush, SRV ? 900 : 400);
-    ISU.status('저장 중…');
+    ISU.status('저장 중입니다…');
   },
   /* 서버 모드: 바뀐 과목·명단만 골라 보냄 */
   snap: { c:{}, l:{}, cc:'', cap:'' },
@@ -2544,10 +2576,10 @@ var ISU = {
     var lines2 = [];
     var names = []; items.forEach(function(it){ if (names.indexOf(it.name) < 0) names.push(it.name); });
     var made = 0, skipped = 0, errs = [];
-    log('계정을 만드는 중… (0/' + names.length + ')');
+    log('계정을 만드는 중입니다… (0/' + names.length + ')');
     names.reduce(function(pr, nm, i){
       return pr.then(function(){
-        log('계정을 만드는 중… (' + (i+1) + '/' + names.length + ')');
+        log('계정을 만드는 중입니다… (' + (i+1) + '/' + names.length + ')');
         var ex = findAcc(nm);
         if (ex) { skipped++; lines2.push(esc2(nm)+': 기존 계정 사용('+esc2(ex.id)+')'); return; }
         return SRV.call('saveAccount', { id: nm, name: nm, role: 'teacher', password: pw }).then(function(r){ made++; ISU.accounts = r.accounts; lines2.push(esc2(nm)+': 새 계정(아이디 '+esc2(nm)+')'); }, function(e){ errs.push(nm + ': ' + (e.message || e.error)); });
@@ -2563,8 +2595,10 @@ var ISU = {
         DB.data.courses.push(ISU.makeCourse({ subject: it.subject, credits: it.credits, year: year, sem: sem, grade: grade, owner: acc.id, teacher: acc.name }));
         cMade++;
       });
-      DB.save();
+      DB.save(); log('과목을 저장하는 중입니다…');
+      var sb = Busy.start('과목을 저장하는 중입니다…');
       return DB.flush().then(function(){
+        Busy.end(sb);
         ISU.render();
         var msg = '계정 ' + made + '개 만듦' + (skipped ? ', ' + skipped + '개는 이미 있음' : '') + ' · 과목 ' + cMade + '개 만듦' + (cSkip ? ', ' + cSkip + '개는 이미 있음' : '') + (errs.length ? ' · 실패: ' + errs.join(' / ') : '');
         ISU.toast(msg); log(esc2(msg) + (lines2.length ? '<br>' + lines2.join(' · ') : '') + (errs.length ? '<br><b style="color:var(--stamp)">실패한 줄이 있습니다. Apps Script에 최신 Code.gs를 붙여넣고 ‘새 버전’으로 배포했는지 확인해 주세요(한글 아이디는 최신 버전부터 됩니다).</b>' : ''));
@@ -2721,7 +2755,7 @@ var ISU = {
 
   /* ── 계정 관리 (관리자) ── */
   accountsView: function(){
-    if (!ISU.accounts) { SRV.call('accounts').then(function(r){ ISU.accounts = r.accounts; ISU.render(); }, function(e){ ISU.toast(e.message || e.error); }); return '<div class="isu-empty">불러오는 중…</div>'; }
+    if (!ISU.accounts) { SRV.call('accounts').then(function(r){ ISU.accounts = r.accounts; ISU.render(); }, function(e){ ISU.toast(e.message || e.error); }); return '<div class="isu-empty">계정 목록을 불러오는 중입니다…</div>'; }
     var cnt = {}; DB.data.courses.forEach(function(c){ cnt[c.owner] = (cnt[c.owner]||0) + 1; });
     var h = '<div class="isu-head"><div><h2>계정 관리</h2><div class="isu-meta">선생님 계정을 만들고 아이디와 처음 비밀번호를 알려 주세요. 처음 로그인하면 비밀번호를 바꾸게 됩니다.</div></div></div>';
     var nowD = new Date(), defSem = nowD.getMonth() < 7 ? '1' : '2';
@@ -2769,7 +2803,7 @@ var ISU = {
   syncTeachers: function(){ AUTH.teachers = (ISU.accounts||[]).filter(function(a){ return a.active; }).map(function(a){ return { id:a.id, name:a.name, role:a.role }; }); },
   refreshLists: function(manual){
     if (!SRV || !AUTH.token) return Promise.resolve();
-    return SRV.call('lists').then(function(r){
+    return SRV.call('lists', {}, null, { silent: !manual }).then(function(r){
       var before = JSON.stringify(DB.data.lists || {});
       DB.data.lists = r.lists || {}; ['prev','boch','choo'].forEach(function(a){ DB.snap.l[a] = DB.data.lists[a] ? JSON.stringify(DB.data.lists[a]) : ''; });
       var changed = before !== JSON.stringify(DB.data.lists);
@@ -3547,7 +3581,7 @@ var Login = {
   start: function(){
     document.body.classList.add('locked');
     var t = null; try { t = localStorage.getItem('isu-token'); } catch(e) {}
-    Login.el().innerHTML = '<div class="lg-card"><div class="lg-brand"><span class="mark"></span><b>최소 성취수준 보장지도</b></div><p class="lg-sub">연결하는 중…</p></div>';
+    Login.el().innerHTML = '<div class="lg-card"><div class="lg-brand"><span class="mark"></span><b>최소 성취수준 보장지도</b></div><p class="lg-sub"><span class="busy-spin"></span> 서버에 연결하는 중입니다…</p></div>';
     var go = function(){ return SRV.call('status').then(function(r){ Login.school = r.school || ''; Login.show(r.needsSetup ? 'setup' : 'login'); }); };
     var p = t ? (AUTH.token = t, Login.boot().catch(function(){ AUTH.token = null; try { localStorage.removeItem('isu-token'); } catch(e) {} return go(); })) : go();
     p.catch(function(e){ Login.el().innerHTML = '<div class="lg-card"><div class="lg-brand"><span class="mark"></span><b>최소 성취수준 보장지도</b></div><p class="lg-err">서버에 연결하지 못했습니다. 인터넷 연결을 확인해 주세요.<br><small>'+esc2(e.message||e.error||'')+'</small></p><button class="btn btn-teal" data-lact="retry">다시 시도</button></div>'; });
