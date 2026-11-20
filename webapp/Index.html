@@ -425,6 +425,7 @@ body.locked>*:not(#login-ov){visibility:hidden}
 .lg-card input{border:1px solid var(--line-2);border-radius:8px;padding:10px 12px;font-size:15px;color:var(--ink)}
 .lg-card input:focus{outline:none;border-color:#5b3d99;box-shadow:0 0 0 3px #f1edf9}
 .lg-go{margin-top:6px;padding:12px;font-size:15px;background:#5b3d99!important}
+.lg-info{color:var(--ok);font-size:13px;min-height:1em}
 .lg-err{color:var(--stamp);font-size:13px;min-height:1em;line-height:1.5}
 .lg-warn{background:#fff6e8;color:#8a4b00;border-radius:8px;padding:10px 12px;font-size:13px}
 @media (max-width:900px){.isu-layout{grid-template-columns:1fr}.isu-side{position:static;height:auto}.kpis{grid-template-columns:repeat(2,1fr)}}
@@ -2268,12 +2269,13 @@ document.querySelector('.app-tab').classList.add('active');
 
 /* ── 서버(구글 시트) 연결: Apps Script 웹앱 안에서 열리면 자동으로 서버 모드 ── */
 var SRV = (typeof google !== 'undefined' && google.script && google.script.run) ? {
-  call: function(action, payload){
+  call: function(action, payload, token){
+    var tok = token === undefined ? AUTH.token : token;   // 로그아웃 뒤에도 앞 사람 저장은 앞 사람 이름으로
     return new Promise(function(res, rej){
       google.script.run
         .withSuccessHandler(function(r){ if (r && r.ok) res(r); else rej(r || { error:'SERVER', message:'응답이 없습니다.' }); })
         .withFailureHandler(function(e){ rej({ error:'NETWORK', message:(e && e.message) || String(e) }); })
-        .api(AUTH.token, action, payload || {});
+        .api(tok, action, payload || {});
     });
   }
 } : null;
@@ -2313,9 +2315,11 @@ var DB = {
     DB.data.courses.forEach(function(c){ DB.snap.c[c.id] = DB.cjson(c); });
     ['prev','boch','choo'].forEach(function(a){ DB.snap.l[a] = DB.data.lists[a] ? JSON.stringify(DB.data.lists[a]) : ''; });
   },
-  flushServer: function(){
+  flushServer: function(tokArg){
+    if (!DB.data) return Promise.resolve();
     if (DB.busy) { DB.again = true; return DB.busy; }
-    var jobs = [];
+    var tok = tokArg || AUTH.token, jobs = [];
+    if (!tok) return Promise.resolve();
     DB.data.courses.forEach(function(c){ var j = DB.cjson(c); if (DB.snap.c[c.id] !== j) jobs.push({ t:'c', c:c, j:j }); });
     Object.keys(DB.snap.c).forEach(function(id){ if (!DB.data.courses.some(function(c){ return c.id === id; })) jobs.push({ t:'d', id:id }); });
     if (isAdmin()) {
@@ -2328,7 +2332,7 @@ var DB = {
       return pr.then(function(){
         if (jb.t === 'c') {
           var old = DB.snap.c[jb.c.id] ? JSON.parse(DB.snap.c[jb.c.id]).subject : null;
-          return SRV.call('saveCourse', { course: jb.c, baseVersion: jb.c.version || 0 }).then(function(r){
+          return SRV.call('saveCourse', { course: jb.c, baseVersion: jb.c.version || 0 }, tok).then(function(r){
             jb.c.version = r.version; jb.c.owner = r.owner; jb.c.teacher = r.teacher;
             DB.snap.c[jb.c.id] = DB.cjson(jb.c);
             if (old !== jb.c.subject) subjChanged = true;
@@ -2343,15 +2347,18 @@ var DB = {
             throw e;
           });
         }
-        if (jb.t === 'd') return SRV.call('deleteCourse', { id: jb.id }).then(function(){ delete DB.snap.c[jb.id]; });
-        if (jb.t === 's') return SRV.call('saveSettings', { settings: { chooCustom: JSON.parse(jb.cc), capMode: jb.cap } }).then(function(){ DB.snap.cc = jb.cc; DB.snap.cap = jb.cap; });
+        if (jb.t === 'd') return SRV.call('deleteCourse', { id: jb.id }, tok).then(function(){ delete DB.snap.c[jb.id]; });
+        if (jb.t === 's') return SRV.call('saveSettings', { settings: { chooCustom: JSON.parse(jb.cc), capMode: jb.cap } }, tok).then(function(){ DB.snap.cc = jb.cc; DB.snap.cap = jb.cap; });
       });
     }, Promise.resolve()).then(function(){
       DB.busy = null; DB.savedAt = new Date(); DB.failCount = 0; ISU.status();
+      if (tok !== AUTH.token) return;                     // 그새 로그아웃됨: 남은 일 없음
       if (subjChanged && !isAdmin()) ISU.refreshLists();
       if (DB.again) { DB.again = false; return DB.flushServer(); }
     }, function(e){
-      DB.busy = null; DB.pending = true;
+      DB.busy = null;
+      if (tok !== AUTH.token) return;
+      DB.pending = true;
       if (e.error === 'AUTH') { ISU.status('로그인이 끊겼습니다. 다시 로그인하면 이어서 저장합니다.', true); return Login.show('expired'); }
       DB.failCount = (DB.failCount || 0) + 1;
       ISU.status('저장하지 못했습니다(' + (e.message || e.error) + '). 잠시 뒤 다시 시도합니다.', true);
@@ -3542,13 +3549,13 @@ var Login = {
         f('id','아이디','text','','username') + f('password','비밀번호','password','','current-password') +
         '<button class="btn btn-teal lg-go" type="submit">로그인</button><p class="lg-sub" style="margin-top:12px">아이디나 비밀번호를 모르면 최소 성취수준 보장지도 담당 선생님께 문의하세요.</p>';
     }
-    h += '<p class="lg-err" id="lg-err">'+esc2(Login.msg||'')+'</p></form>';
+    h += '<p class="'+(Login.msg === '로그아웃했습니다.' ? 'lg-info' : 'lg-err')+'" id="lg-err">'+esc2(Login.msg||'')+'</p></form>';
     Login.msg = '';
     Login.el().innerHTML = h; Login.el().style.display = '';
     var first = Login.el().querySelector('input'); if (first) first.focus();
   },
   val: function(k){ var x = Login.el().querySelector('[name="'+k+'"]'); return x ? x.value : ''; },
-  err: function(m){ var e = document.getElementById('lg-err'); if (e) e.textContent = m; var b = Login.el().querySelector('.lg-go'); if (b) b.disabled = false; },
+  err: function(m){ var e = document.getElementById('lg-err'); if (e) { e.textContent = m; e.className = 'lg-err'; } var b = Login.el().querySelector('.lg-go'); if (b) b.disabled = false; },
   submit: function(){
     var b = Login.el().querySelector('.lg-go'); if (b) b.disabled = true;
     var done = function(r){ AUTH.token = r.token; try { localStorage.setItem('isu-token', r.token); } catch(e) {} AUTH.user = r.user;
@@ -3602,11 +3609,18 @@ var Login = {
   },
   hide: function(){ document.body.classList.remove('locked'); var o = document.getElementById('login-ov'); if (o) o.style.display = 'none'; },
   logout: function(){
-    Promise.resolve(DB.flush()).then(function(){ return SRV.call('logout'); }).catch(function(){}).then(function(){
-      try { localStorage.removeItem('isu-token'); } catch(e) {}
-      AUTH.token = null; AUTH.user = null; DB.data = null;
-      location.reload();
-    });
+    // 누르는 즉시 로그인 화면으로. 남은 저장·로그아웃 처리는 뒤에서(앞 사람 로그인 정보로) 마무리
+    var tok = AUTH.token, done = Promise.resolve(DB.data ? DB.flush() : null);
+    AUTH.token = null; AUTH.user = null; AUTH.teachers = []; AUTH.sheetUrl = '';
+    try { localStorage.removeItem('isu-token'); } catch(e) {}
+    clearInterval(Login._timer); clearTimeout(DB.timer); DB.pending = false;
+    ISU.parkPanels(); ISU.accounts = null; ISU.view = 'home'; ISU.filterTeacher = ''; DB.data = null;
+    var root = document.getElementById('isu-root'); if (root) root.innerHTML = '';
+    var w = document.getElementById('who'); if (w) w.innerHTML = '';
+    ['prev','boch','choo'].forEach(function(app){ STATE[app].students = []; STATE[app].attend = freshAttend(); });
+    Login.msg = '로그아웃했습니다.';
+    Login.show('login');
+    done.catch(function(){}).then(function(){ return SRV.call('logout', {}, tok); }).catch(function(){});
   }
 };
 
