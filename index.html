@@ -223,6 +223,41 @@ table.gtbl td.gtbl-l{text-align:left;padding-left:10px}
 .gtong-reason .rl{font-weight:700;margin-bottom:10px}
 .gtong-reason .rlines div{border-bottom:1px dotted #999;height:24px}
 .gtong-reason .rlines div:last-child{border-bottom:none}
+/* 보충지도·추가학습 1장 양식 */
+.gtong-page.gbc{font-size:13px;line-height:1.66;padding:13mm 15mm 11mm}
+.gbc-hd{width:100%;border-collapse:collapse;margin-bottom:10px}
+.gbc-hd td{border:1px solid #111;padding:4px 8px;font-size:12px}
+.gbc-hd .sch{width:23%;text-align:center;font-weight:700;white-space:nowrap}
+.gbc-hd .ttl{text-align:center;font-size:24px;font-weight:800;letter-spacing:2px}
+.gbc-hd .k{width:10%;text-align:center}
+.gbc-hd .v{width:20%;text-align:right;white-space:nowrap}
+.gbc-title{border:1px solid #111;text-align:center;font-size:17px;font-weight:800;padding:8px 6px;margin-bottom:14px;letter-spacing:-.2px}
+.gbc-body p{margin:0;text-align:justify;text-indent:.6em;line-height:1.68}
+.gbc-body p:first-child{text-indent:1.2em;margin-bottom:1px}
+.gbc-date{text-align:center;margin-top:16px;font-size:13.5px}
+.gbc-prin{text-align:center;font-size:20px;font-weight:800;letter-spacing:6px;margin:8px 0 6px}
+.gbc-cut{display:flex;align-items:center;gap:8px;font-size:11px;color:#333;margin:6px 0 4px}
+.gbc-cut::before,.gbc-cut::after{content:'';flex:1;border-top:1px dashed #333}
+.gbc-title2{text-align:center;font-size:17px;font-weight:800;margin:4px 0 6px}
+.gbc-who{text-align:right;font-size:13px;margin-bottom:6px}
+.gbc-pledge{margin:0 0 8px;text-indent:.6em;text-align:justify}
+.gbc-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px}
+.gbc-tbl th,.gbc-tbl td{border:1px solid #111;padding:4px 3px;text-align:center}
+.gbc-tbl thead th{background:#e8edf2;font-weight:700;line-height:1.35}
+.gbc-sign{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:13px;margin:4px 0 12px}
+.gbc-sign>div{display:flex;align-items:center;width:62%}
+.gbc-sign .r{width:58px;text-align:justify;text-align-last:justify}.gbc-sign .l{margin-left:16px}.gbc-sign .sp{flex:1}
+.gbc-to{text-align:center;font-size:17px;font-weight:800;letter-spacing:4px}
+.gtong-page.gbc.dense1{font-size:12.3px;line-height:1.56}
+.gtong-page.gbc.dense1 .gbc-body p{line-height:1.56}
+.gtong-page.gbc.dense1 .gbc-date{margin-top:10px}.gtong-page.gbc.dense1 .gbc-prin{margin:4px 0 2px}
+.gtong-page.gbc.dense1 .gbc-tbl td{padding:3px}.gtong-page.gbc.dense1 .gbc-sign{margin:2px 0 8px;gap:3px}
+.gtong-page.gbc.dense2{font-size:11.6px;line-height:1.48;padding-top:11mm;padding-bottom:9mm}
+.gtong-page.gbc.dense2 .gbc-body p{line-height:1.48}
+.gtong-page.gbc.dense2 .gbc-title{margin-bottom:8px;padding:6px}
+.gtong-page.gbc.dense2 .gbc-date{margin-top:6px}.gtong-page.gbc.dense2 .gbc-prin{margin:2px 0 0;font-size:18px}
+.gtong-page.gbc.dense2 .gbc-tbl{font-size:11.2px;margin-bottom:8px}.gtong-page.gbc.dense2 .gbc-tbl td{padding:2px}
+.gtong-page.gbc.dense2 .gbc-sign{margin:0 0 6px;gap:2px}
 
 /* ── 출석부 ── */
 .attend-wrap>div:first-child{margin:4px 0 10px!important}
@@ -1529,6 +1564,7 @@ function onGsubjInput(app, k, field, val) {
   GTONG_SUBJ[app][k][field] = val;
 }
 function buildGsubjPanel(app) {
+  if (app === 'boch' || app === 'choo') return buildGsubjPanelBC(app);
   var st = STATE[app];
   var subjs = getSubjects(app, st.sem);
   var h = '<div class="gsubj-panel"><div class="gsp-title">📋 과목별 시수·운영 방법 입력 <span style="font-weight:400;color:var(--muted)">(입력한 과목만 전체 학생에게 일괄 적용 · 비워 두면 기본값/현재값 유지)</span></div><div class="gsubj-grid"><div class="gh">과목</div><div class="gh">시수</div><div class="gh">운영 방법</div>';
@@ -1553,17 +1589,19 @@ function applyGtongSubj(app) {
   var sets = wrap.querySelectorAll('.gtong-set');
   if (!sets.length) { showToastMsg(app, '먼저 가정통신문을 생성해 주세요.'); return; }
   sets.forEach(function(set){
-    set.querySelectorAll('.gtbl tbody tr').forEach(function(tr){
+    set.querySelectorAll('.gtbl tbody tr, .gbc-tbl tbody tr').forEach(function(tr){
       var sj = tr.querySelector('[data-g="subj"]');
       if (!sj) return;
       var k = sj.textContent.trim();
-      var hv = gtongSubjVal(app,k,'hours'), mv = gtongSubjVal(app,k,'method');
-      var h = tr.querySelector('[data-g="hours"]'), m = tr.querySelector('[data-g="method"]');
+      var hv = gtongSubjVal(app,k,'hours'), mv = gtongSubjVal(app,k,'method'), cv = gtongSubjVal(app,k,'credits');
+      var h = tr.querySelector('[data-g="hours"]'), m = tr.querySelector('[data-g="method"]'), cr = tr.querySelector('[data-g="credits"]');
+      if (cr && cv) cr.textContent = cv;
+      if (h && !hv && cv && (app === 'boch' || app === 'choo')) hv = String((+cv||0)*3);
       if (h && hv) h.textContent = hv;
       if (m && mv) m.textContent = mv;
     });
   });
-  showToastMsg(app, '과목별 시수·운영 방법이 전체 '+sets.length+'세트에 적용되었습니다.');
+  showToastMsg(app, (app === 'prev' ? '과목별 시수·운영 방법이 전체 ' : '과목별 학점·운영시수가 전체 ')+sets.length+'명에게 적용되었습니다.');
 }
 
 function gtongDefaults(app) {
@@ -1598,13 +1636,14 @@ function renderGtongToolbar(app) {
     '<input type="file" id="'+app+'-logo-file" accept="image/*" style="display:none" onchange="onGtongLogoChange(\''+app+'\',this)">' +
     (GTONG_LOGO ? '<button class="btn btn-gray btn-sm" onclick="clearGtongLogo(\''+app+'\')">✕ 로고 제거</button>' : '') +
     '<button class="btn '+(app==='prev'?'btn-navy2':'btn-teal2')+' btn-sm" onclick="doPrint(\''+app+'\',\'gtong\')">🖨 인쇄</button>' +
-    '<div class="gtong-hint">💡 안내문·확인서의 모든 텍스트는 클릭 후 바로 수정할 수 있습니다. 한 세트를 고쳐 놓고 "공통 항목 일괄 적용"을 누르면 발송일자·학교장·연락처 등 같은 항목이 전체 학생에게 한 번에 반영됩니다. 학교 로고는 한 번 업로드하면 예방지도·보충지도·추가학습 전체 가정통신문에 공통으로 적용됩니다(단, 다시 생성됩니다). 학생 1인당 2페이지(안내문+확인서)로 인쇄됩니다.</div>' +
+    (app !== 'prev' ? '<div class="gtong-hint">💡 보충지도·추가학습 안내문은 학생 1인당 1장(안내문 + 절취선 + 확인서)입니다. 한 학생이 보충지도와 추가학습 대상 과목을 함께 가지고 있으면 한 장에 모두 표시됩니다(두 탭 중 한 곳에서만 인쇄하세요). 예방지도 참여시수는 이수 관리에 입력한 출석에서 자동으로 채워집니다. 모든 문구는 클릭해서 고칠 수 있고, 한 장을 고친 뒤 "공통 항목 일괄 적용"을 누르면 전체에 반영됩니다.</div>' : '<div class="gtong-hint">💡 안내문·확인서의 모든 텍스트는 클릭 후 바로 수정할 수 있습니다. 한 세트를 고쳐 놓고 "공통 항목 일괄 적용"을 누르면 발송일자·학교장·연락처 등 같은 항목이 전체 학생에게 한 번에 반영됩니다. 학교 로고는 한 번 업로드하면 예방지도·보충지도·추가학습 전체 가정통신문에 공통으로 적용됩니다(단, 다시 생성됩니다). 학생 1인당 2페이지(안내문+확인서)로 인쇄됩니다.</div>') +
     buildGsubjPanel(app);
 }
 
 function esc2(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function buildGtongPages(app, s, subs, idx) {
+  if (app === 'boch' || app === 'choo') return buildGtongBC(app, s, idx);
   var d = gtongDefaults(app);
   var kind = GTONG_TYPE_LABEL[app];
   var uid = app+'-g'+idx;
@@ -1678,6 +1717,109 @@ function buildGtongPages(app, s, subs, idx) {
   return '<div class="gtong-set" data-uid="'+uid+'"><div class="gtong-set-label">'+esc2(s.grade)+'학년 '+esc2(s.cls)+'반 '+esc2(s.num)+'번 '+esc2(s.name)+'</div>' + page1 + page2 + '</div>';
 }
 
+/* ── 보충지도·추가학습 가정통신문 (1인 1장: 안내문 + 절취선 + 확인서) ── */
+var GTONG_CREDITS_DEFAULT = { '공통국어':4, '공통수학':4, '공통영어':4, '통합사회':4, '통합과학':4, '과학탐구실험':1, '한국사':3 };
+function gtongCredits(app, k) {
+  var v = gtongSubjVal(app, k, 'credits'); if (v) return v;
+  if (typeof DB !== 'undefined' && DB.data) {
+    var c = DB.data.courses.filter(function(x){ return x.subject === k && x.credits; })[0];
+    if (c) return String(c.credits);
+  }
+  var base = String(k).replace(/\d+$/, '');
+  return GTONG_CREDITS_DEFAULT[base] ? String(GTONG_CREDITS_DEFAULT[base]) : '';
+}
+function gtongPrevHours(k, sid) {
+  if (typeof DB === 'undefined' || !DB.data || typeof ISU === 'undefined') return '';
+  var best = '';
+  DB.data.courses.forEach(function(c){
+    if (c.subject !== k) return;
+    var p = c.prev.students.filter(function(x){ return x.sid === sid; })[0];
+    if (p) { var h = ISU.prevHours(p); if (best === '' || h > best) best = h; }
+  });
+  return best === '' ? '' : String(best);
+}
+function buildGsubjPanelBC(app) {
+  var keys = {};
+  ['boch','choo'].forEach(function(a){ getSubjects(a, STATE[a].sem).forEach(function(k){
+    if (STATE[a].students.some(function(s){ return s.subjects[k]; })) keys[k] = 1; }); });
+  var subjs = getSubjects('choo', STATE[app].sem).filter(function(k){ return keys[k]; });
+  if (!subjs.length) subjs = getSubjects(app, STATE[app].sem);
+  var h = '<div class="gsubj-panel"><div class="gsp-title">📋 과목별 학점·운영시수 <span style="font-weight:400;color:var(--muted)">(비워 두면 학점은 기본값, 운영시수는 학점 × 3)</span></div><div class="gsubj-grid" style="grid-template-columns:130px 80px 100px"><div class="gh">과목</div><div class="gh">학점</div><div class="gh">운영시수</div>';
+  subjs.forEach(function(k){
+    var kk = esc2(k).replace(/"/g,'&quot;'), cdef = gtongCredits(app, k) || '학점';
+    var stored = gtongSubjVal(app,k,'credits');
+    h += '<div class="gn">'+esc2(k)+'</div>' +
+      '<input type="text" placeholder="'+esc2(stored ? '' : cdef)+'" value="'+esc2(stored).replace(/"/g,'&quot;')+'" oninput="onGsubjInput(\''+app+'\',this.dataset.k,\'credits\',this.value)" data-k="'+kk+'">' +
+      '<input type="text" placeholder="'+esc2(String((+cdef||0)*3||''))+'" value="'+esc2(gtongSubjVal(app,k,'hours')).replace(/"/g,'&quot;')+'" oninput="onGsubjInput(\''+app+'\',this.dataset.k,\'hours\',this.value)" data-k="'+kk+'">';
+  });
+  return h + '</div><div style="margin-top:8px"><button class="btn btn-green btn-sm" onclick="applyGtongSubj(\''+app+'\')">✅ 과목별 학점·운영시수 전체 학생에 적용</button></div></div>';
+}
+function gtongDefaultsBC(app) {
+  var sem = STATE[app].sem, yr = new Date().getFullYear();
+  var u = function(t){ return '<u><b>'+t+'</b></u>'; };
+  return {
+    schoolName: '광주경신여자고등학교',
+    phone1: '☎ 062-000-0000', phone2: '☎ 062-000-0000',
+    bcTitle: yr+'학년도 '+sem+'학기 최소 성취수준 보장 보충지도·추가학습 안내',
+    bc1: '학부모님 안녕하십니까?',
+    bc2: '고교학점제가 전면 시행됨에 따라, 본교에서는 학생들이 과목별 이수 기준(학업성취율 40% 이상 및 출석률 2/3 이상)을 충족할 수 있도록 한 학기 동안 최소 성취수준 보장 예방지도를 운영해 왔습니다.',
+    bc3: '그러나 학기말 성적 처리 결과, 일부 학생이 공통 과목의 학업성취율 40%에 도달하지 못하여 이수 기준을 충족하지 못한 경우가 발생함에 따라, 해당 학생들의 학점 취득을 지원하고자 학기말 및 방학 기간을 활용한 최소 성취수준 보장 보충지도를 실시하고자 합니다.',
+    bc4: u('학업성취율 40%에 미도달한 학생이 보충지도에 참여하지 않을 경우, 해당 과목은 미이수로 처리되어 학점을 취득할 수 없으며')+', 이는 향후 졸업 기준 학점 충족에 어려움을 초래할 수 있습니다. 이에 보충지도에 적극적으로 참여할 수 있도록 협조하여 주시기 바랍니다.',
+    bc5: '보충지도는 과목별 학점당 3시수 이상 운영되며, 보충지도 시수의 2/3 이상을 이수할 경우 학점 취득이 가능합니다. 또한 이미 해당 과목의 예방지도에 참여한 경우, 그 참여 시수의 일부는 보충지도 시수로 인정됩니다. 보충지도 참여 여부는 학교생활기록부에 기재되지 않으며, 보충지도 이수 시 해당 과목의 최종 학업성취도는 ‘E’로 부여됩니다.',
+    bc6: '아울러 '+u('학업성취율은 40% 이상이나 출석률이 2/3 미만인 과목의 경우에도 최소 성취수준 보장 보충지도에 준하여 추가학습을 실시')+'하며, 추가학습에 참여한 경우 그 결과를 학업성취도에 반영합니다.',
+    bc7: '자녀의 과목별 이수 기준 미도달 현황을 아래와 같이 안내드리오니, 내용을 확인하신 후 확인 여부를 회신하여 주시기 바랍니다. 또한 자녀가 보충지도 및 추가학습에 성실히 참여하여 다음 학기(학년도)에 학업을 원활히 이어갈 수 있도록 가정에서도 지속적인 관심과 지지를 부탁드립니다.',
+    dateText: yr+'. ○○. ○○.',
+    principal: '광주경신여자고등학교장',
+    bcTitle2: '최소 성취수준 보장 보충지도·추가학습 확인서',
+    bcPledge: '본인은 '+yr+'학년도 '+sem+'학기 과목 이수기준 미도달 현황을 확인하였으며, 해당 과목의 보충지도 및 추가학습 프로그램에 성실히 참여하겠습니다.',
+    principalTo: '광주경신여자고등학교장 귀하'
+  };
+}
+function bcStudentRows(app, s) {
+  var rows = [], same = function(x){ return x.grade === s.grade && x.cls === s.cls && x.num === s.num; };
+  [['boch','보충지도','학업성취율'], ['choo','추가학습','출석률']].forEach(function(t){
+    var a = t[0], st = (STATE[a].students || []).filter(same)[0];
+    if (!st || STATE[a].sem !== STATE[app].sem) return;
+    getSubjects(a, STATE[a].sem).forEach(function(k){ if (st.subjects[k]) rows.push({ k:k, kind:t[1], miss:t[2] }); });
+  });
+  // 같은 과목이 보충·추가 양쪽에 있으면 하나로 합침(학업성취율+출석률)
+  var out = [];
+  rows.forEach(function(r){
+    var e = out.filter(function(x){ return x.k === r.k; })[0];
+    if (e) { e.kind = '보충지도'; e.miss = '학업성취율+출석률'; } else out.push(r);
+  });
+  return out;
+}
+function buildGtongBC(app, s, idx) {
+  var d = gtongDefaultsBC(app), uid = app+'-g'+idx;
+  var sid = makeStudentId(s.grade, s.cls, s.num);
+  var rows = bcStudentRows(app, s);
+  var tr = rows.map(function(r, i){
+    var cr = gtongCredits(app, r.k), hrs = gtongSubjVal(app, r.k, 'hours') || (cr ? String((+cr)*3) : '');
+    return '<tr><td>'+(i+1)+'</td><td><span data-g="subj">'+esc2(r.k)+'</span>(<span data-g="credits">'+(cr ? esc2(cr) : '&nbsp;&nbsp;')+'</span>)</td>' +
+      '<td>'+r.kind+'</td><td>'+r.miss+'</td><td data-g="hours">'+esc2(hrs)+'</td><td data-g="prevh">'+esc2(gtongPrevHours(r.k, sid))+'</td></tr>';
+  }).join('');
+  var page =
+    '<div class="gtong-page gbc'+(rows.length >= 8 ? ' dense2' : rows.length >= 5 ? ' dense1' : '')+'" contenteditable="true" spellcheck="false">' +
+      '<table class="gbc-hd"><tr><td class="sch" rowspan="2" data-common="schoolName">'+esc2(d.schoolName)+'</td><td class="ttl" rowspan="2">가 정 통 신 문</td>' +
+        '<td class="k">교무실</td><td class="v" data-common="phone1">'+esc2(d.phone1)+'</td></tr>' +
+        '<tr><td class="k">행정실</td><td class="v" data-common="phone2">'+esc2(d.phone2)+'</td></tr></table>' +
+      '<div class="gbc-title" data-common="bcTitle">'+esc2(d.bcTitle)+'</div>' +
+      '<div class="gbc-body">' + ['bc1','bc2','bc3','bc4','bc5','bc6','bc7'].map(function(k){ return '<p data-common="'+k+'">'+d[k]+'</p>'; }).join('') + '</div>' +
+      '<div class="gbc-date" data-common="dateText">'+esc2(d.dateText)+'</div>' +
+      '<div class="gbc-prin" data-common="principal">'+esc2(d.principal)+'</div>' +
+      '<div class="gbc-cut" contenteditable="false"><span>절 취 선</span></div>' +
+      '<div class="gbc-title2" data-common="bcTitle2">'+esc2(d.bcTitle2)+'</div>' +
+      '<div class="gbc-who"><b data-g="grade">'+esc2(s.grade)+'</b>학년 ( <b data-g="cls">'+s.cls+'</b> )반 ( <b data-g="num">'+s.num+'</b> )번 이름: ( <b data-g="name">'+esc2(s.name)+'</b> )</div>' +
+      '<p class="gbc-pledge" data-common="bcPledge">'+esc2(d.bcPledge)+'</p>' +
+      '<table class="gbc-tbl"><thead><tr><th style="width:8%">연번</th><th style="width:22%">과목명<br>(학점수)</th><th style="width:14%">참여유형</th><th style="width:22%">과목이수기준<br>미도달 현황</th><th style="width:14%">운영시수</th><th style="width:20%">예방지도<br>참여시수</th></tr></thead>' +
+        '<tbody>'+(tr || '<tr><td colspan="6">(대상 과목 없음)</td></tr>')+'</tbody></table>' +
+      '<div class="gbc-sign"><div><span class="r">학 생</span><span class="l">성명</span><span class="sp"></span>(서명 또는 인)</div><div><span class="r">보호자</span><span class="l">성명</span><span class="sp"></span>(서명 또는 인)</div></div>' +
+      '<div class="gbc-to" data-common="principalTo">'+esc2(d.principalTo)+'</div>' +
+    '</div>';
+  return '<div class="gtong-set" data-uid="'+uid+'"><div class="gtong-set-label">'+esc2(s.grade)+'학년 '+esc2(s.cls)+'반 '+esc2(s.num)+'번 '+esc2(s.name)+'</div>' + page + '</div>';
+}
+
 function renderGtong(app) {
   var st = STATE[app];
   var wrap = document.getElementById(app+'-gtong-wrap');
@@ -1714,30 +1856,35 @@ function applyGtongCommon(app) {
     return cur;
   }
   sets.forEach(function(set){
-    set.querySelectorAll('.gtbl tbody tr').forEach(function(tr){
+    set.querySelectorAll('.gtbl tbody tr, .gbc-tbl tbody tr').forEach(function(tr){
       var sj = tr.querySelector('[data-g="subj"]');
       if (!sj) return;
       var key = sj.textContent.trim();
       var h = tr.querySelector('[data-g="hours"]');
       var m = tr.querySelector('[data-g="method"]');
       var e = subjMap[key] || (subjMap[key] = {});
-      if (h) e.hours = pick(e.hours, h.innerHTML, String(SUBJ_HOURS_DEFAULT[key]||'4'));
+      var crd = tr.querySelector('[data-g="credits"]');
+      if (crd) e.credits = pick(e.credits, crd.innerHTML, String(gtongCredits(app, key)));
+      if (h) e.hours = pick(e.hours, h.innerHTML, crd ? String((+gtongCredits(app,key)||0)*3) : String(SUBJ_HOURS_DEFAULT[key]||'4'));
       if (m) e.method = pick(e.method, m.innerHTML, SUBJ_METHOD_DEFAULT);
     });
   });
   Object.keys(subjMap).forEach(function(k){
-    var hv = gtongSubjVal(app,k,'hours'), mv = gtongSubjVal(app,k,'method');
+    var hv = gtongSubjVal(app,k,'hours'), mv = gtongSubjVal(app,k,'method'), cv = gtongSubjVal(app,k,'credits');
+    if (cv) subjMap[k].credits = esc2(cv);
     if (hv) subjMap[k].hours = esc2(hv);
     if (mv) subjMap[k].method = esc2(mv);
   });
   function applySubj(set) {
-    set.querySelectorAll('.gtbl tbody tr').forEach(function(tr){
+    set.querySelectorAll('.gtbl tbody tr, .gbc-tbl tbody tr').forEach(function(tr){
       var sj = tr.querySelector('[data-g="subj"]');
       if (!sj) return;
       var v = subjMap[sj.textContent.trim()];
       if (!v) return;
       var h = tr.querySelector('[data-g="hours"]');
       var m = tr.querySelector('[data-g="method"]');
+      var crd2 = tr.querySelector('[data-g="credits"]');
+      if (crd2 && v.credits !== undefined) crd2.innerHTML = v.credits;
       if (h && v.hours !== undefined)  h.innerHTML = v.hours;
       if (m && v.method !== undefined) m.innerHTML = v.method;
     });
