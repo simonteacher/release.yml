@@ -2001,6 +2001,54 @@ function showToastMsg(app, msg) {
 }
 
 /* ── 인쇄 ── */
+/* ── 인쇄: PC 프로그램에서는 PDF 미리보기 창으로, 브라우저에서는 브라우저 인쇄 미리보기로 ── */
+function ISU_PRINT(ov, st) {
+  function done() { if (ov.parentNode) ov.remove(); if (st.parentNode) st.remove(); }
+  var direct = window.appStore && window.appStore.printPreview;
+  if (direct || ISU_PRINT.bridge) {
+    try {
+      var html = ISU_PRINT.doc(ov);
+      if (direct) window.appStore.printPreview(html);
+      else window.top.postMessage({ __isuPrint: 'job', html: html }, '*');
+      done(); ISU_PRINT.notice(); return;
+    } catch (e) {}
+  }
+  setTimeout(function(){ window.print(); setTimeout(done, 800); }, 150);
+}
+ISU_PRINT.bridge = false;
+ISU_PRINT.doc = function(ov) {
+  var c = ov.cloneNode(true);
+  c.style.display = 'block'; c.style.position = 'static'; c.style.overflow = 'visible';
+  // 입력칸의 현재 값을 HTML에 옮겨 적음
+  var src = ov.querySelectorAll('input,textarea,select'), dst = c.querySelectorAll('input,textarea,select');
+  for (var i = 0; i < src.length && i < dst.length; i++) {
+    var s = src[i], d = dst[i];
+    if (s.tagName === 'TEXTAREA') d.textContent = s.value;
+    else if (s.tagName === 'SELECT') { for (var k = 0; k < d.options.length; k++) { if (k === s.selectedIndex) d.options[k].setAttribute('selected', ''); else d.options[k].removeAttribute('selected'); } }
+    else if (s.type === 'checkbox' || s.type === 'radio') { if (s.checked) d.setAttribute('checked', ''); else d.removeAttribute('checked'); }
+    else d.setAttribute('value', s.value);
+  }
+  var head = '';
+  document.querySelectorAll('style,link[rel="stylesheet"]').forEach(function(n){
+    if (n.tagName === 'LINK') head += '<link rel="stylesheet" href="' + String(n.href).replace(/"/g, '&quot;') + '">';
+    else head += n.outerHTML;
+  });
+  return '<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><base href="' + String(document.baseURI).replace(/"/g, '&quot;') + '">' +
+    '<title>인쇄 미리보기</title>' + head + '</head><body style="margin:0;background:#fff">' + c.outerHTML + '</body></html>';
+};
+ISU_PRINT.notice = function() {
+  var n = document.createElement('div');
+  n.textContent = '인쇄 미리보기를 여는 중입니다…';
+  n.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1c2433;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:100000;box-shadow:0 6px 20px rgba(0,0,0,.2)';
+  document.body.appendChild(n); setTimeout(function(){ n.remove(); }, 2200);
+};
+// 웹앱이 PC 프로그램 안에서 열렸는지 확인 (프로그램이 응답하면 미리보기 창 사용)
+(function(){
+  if (window.top === window) return;
+  window.addEventListener('message', function(e){ if (e.data && e.data.__isuPrint === 'pong') ISU_PRINT.bridge = true; });
+  try { window.top.postMessage({ __isuPrint: 'ping' }, '*'); } catch (e) {}
+})();
+
 function doPrint(app, tab) {
   var el = document.getElementById(app+'-tab-'+tab);
   if (!el) return;
@@ -2095,10 +2143,7 @@ function doPrint(app, tab) {
   document.head.appendChild(ps);
 
   overlay.style.display = 'block';
-  setTimeout(function() {
-    window.print();
-    setTimeout(function() { overlay.remove(); ps.remove(); }, 800);
-  }, 150);
+  ISU_PRINT(overlay, ps);
 }
 
 /* ── 엑셀 내보내기 ── */
@@ -3537,7 +3582,7 @@ var ISU = {
       '@page{size:A4 '+(land?'landscape':'portrait')+';margin:10mm}.ph{font-size:15pt;margin:0 0 4px}.pm{font-size:9pt;margin-bottom:8px}#__print_overlay__ h3{font-size:11pt;margin:12px 0 4px}' +
       '.pt{width:100%;border-collapse:collapse;font-size:8pt}.pt th,.pt td{border:1px solid #777;padding:3px 2px;text-align:center}.pt th{background:#eee}.pt small{font-weight:400;font-size:6.5pt}}';
     document.head.appendChild(st);
-    setTimeout(function(){ window.print(); setTimeout(function(){ ov.remove(); st.remove(); }, 800); }, 150);
+    ISU_PRINT(ov, st);
   }
 };
 function ea(s){ return esc2(s).replace(/"/g,'&quot;'); }

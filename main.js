@@ -55,6 +55,40 @@ ipcMain.on('store:saveSync', (e, text) => {
 });
 ipcMain.handle('store:openFolder', () => { fs.mkdirSync(dataDir(), { recursive: true }); return shell.openPath(app.getPath('userData')); });
 
+// 인쇄 미리보기: 인쇄할 화면을 PDF로 만들어 미리보기 창에 띄움 (창 오른쪽 위 🖨 버튼으로 인쇄)
+let printBusy = false;
+ipcMain.on('print:preview', async (e, html) => {
+  if (typeof html !== 'string' || !html || html.length > 60e6 || printBusy) return;
+  printBusy = true;
+  const dir = path.join(app.getPath('temp'), 'isu-print');
+  const id = Date.now(), htmlPath = path.join(dir, id + '.html'), pdfPath = path.join(dir, '인쇄미리보기_' + id + '.pdf');
+  let r;
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(htmlPath, html, 'utf8');
+    r = new BrowserWindow({ show: false, webPreferences: { javascript: false, sandbox: true, contextIsolation: true } });
+    await r.loadFile(htmlPath);
+    await new Promise((ok) => setTimeout(ok, 600));   // 글꼴 적용 대기
+    const pdf = await r.webContents.printToPDF({ printBackground: true, preferCSSPageSize: true });
+    fs.writeFileSync(pdfPath, pdf);
+  } catch (err) {
+    dialog.showErrorBox('인쇄 미리보기', '미리보기를 만들지 못했습니다.\n' + (err && err.message || err));
+    return;
+  } finally {
+    printBusy = false;
+    if (r && !r.isDestroyed()) r.destroy();
+    fs.rm(htmlPath, { force: true }, () => {});
+  }
+  const pv = new BrowserWindow({
+    width: 1100, height: 900, title: '인쇄 미리보기 — 오른쪽 위 🖨 버튼으로 인쇄합니다', autoHideMenuBar: true,
+    webPreferences: { plugins: true, sandbox: true, contextIsolation: true, nodeIntegration: false }
+  });
+  pv.on('page-title-updated', (ev) => ev.preventDefault());
+  pv.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  pv.on('closed', () => fs.rm(pdfPath, { force: true }, () => {}));
+  pv.loadFile(pdfPath);
+});
+
 // ── 중복 실행 방지 ─────────────────────────────────────────
 if (!app.requestSingleInstanceLock()) {
   app.quit();
