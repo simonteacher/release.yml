@@ -4,7 +4,7 @@ name: 웹앱 파일 갱신
 on:
   push:
     branches: [main]
-    paths: ['index.html', 'webapp/build.py']
+    paths: ['index.html', 'webapp/build.py', 'webapp/Code.gs', 'webapp/appsscript.json']
   workflow_dispatch:
 
 permissions:
@@ -19,9 +19,10 @@ jobs:
         run: python3 webapp/build.py
       - name: 바뀌었으면 저장
         run: |
-          if git diff --quiet -- webapp/Index.html; then echo "변경 없음"; exit 0; fi
+          git add -N webapp/
+          if git diff --quiet -- webapp/; then echo "변경 없음"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add webapp/Index.html
-          git commit -m "웹앱 파일 자동 갱신 (webapp/Index.html)"
+          git add webapp/
+          git commit -m "웹앱 파일 자동 갱신 (webapp/Index.html, webapp/배포판)"
           git push

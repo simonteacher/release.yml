@@ -1668,20 +1668,25 @@ function applyGtongSubj(app) {
   showToastMsg(app, (app === 'prev' ? '과목별 시수·운영 방법이 전체 ' : '과목별 학점·운영시수가 전체 ')+sets.length+'명에게 적용되었습니다.');
 }
 
+/* ── 학교 정보: 다른 학교용 배포판(webapp/배포판)에서는 비워지고, 처음 설정 때 입력한 학교 이름이 쓰입니다 ── */
+var SCHOOL_INFO = { name: '광주경신여자고등학교', url: 'http://gshin.gen.hs.kr', dept: '교육과정부', phone: '062) 605-4815', phoneBC: '☎ 062-000-0000', prevDate: '2026. 5. 8.' };
+function schoolNm() {
+  return SCHOOL_INFO.name || (typeof AUTH !== 'undefined' && AUTH.school) || (typeof Login !== 'undefined' && Login.school) || '○○고등학교';
+}
 function gtongDefaults(app) {
   var kind = GTONG_TYPE_LABEL[app];
   return {
     title1: '최소 성취수준 보장 ' + kind + ' 안내 및 확인서',
-    schoolName: '광주경신여자고등학교', schoolUrl: 'http://gshin.gen.hs.kr',
-    dept: '교육과정부', phone: '062) 605-4815',
+    schoolName: schoolNm(), schoolUrl: SCHOOL_INFO.url,
+    dept: SCHOOL_INFO.dept || '교육과정부', phone: SCHOOL_INFO.phone || '☎ 000-000-0000',
     intro: '학부모님 안녕하십니까? 학부모님 가정에 건강과 행복을 기원합니다.',
     body1: '본교에서는 고교학점제 전면 도입에 따라 학생들이 교과 수업을 통해 도달해야 할 최소 성취수준 보장을 위해 최소 성취수준 보장 예방지도와 보충지도를 실시하고 있습니다.',
     body2: '예방지도는 학생들이 학기 말에 과목 이수기준*에 미도달하는 것을 미연에 방지하여 성공적으로 학점을 취득할 수 있도록 돕기 위한 책임교육의 일환으로 실시하는 교육활동이며, 보충지도는 학기 말에 과목별 학업성취율 40%에 도달하지 못하여 학점 취득이 어려운 학생을 대상으로 한 번 더 학점 취득의 기회를 주기 위한 지도입니다. 본교의 최소 성취수준 보장지도에 학부모님의 많은 관심과 지지를 부탁드립니다.',
     criteria: '•과목 이수기준: 학업성취율 40% 이상 + 과목 출석률 2/3 이상\n(교양 교과 및 창의적체험활동은 출석률만 적용)',
     body3: '귀 자녀는 대상자 선정 기준에 따라 아래와 같이 ' + kind + ' 대상자에 선정되었습니다. 최소 성취수준 보장을 위한 ' + kind + ' 대상 과목을 확인하시고, ' + kind + ' 참여과목 또는 참여를 희망하지 않는 경우 사유를 작성하여 회신해 주시기 바랍니다. (과목별 ' + kind + ' 프로그램의 운영 방법은 학습 상황에 따라 유동적으로 조정될 수 있습니다.)',
     note: '과목 이수기준에 미도달한 학생이 이미 ' + kind + '에 참여한 경우, 보충지도 시수의 50% 이내에서 ' + kind + ' 참여 시수를 보충지도 시수로 인정받을 수 있음.',
-    dateText: '2026. 5. 8.',
-    principal: '광주경신여자고등학교장',
+    dateText: SCHOOL_INFO.prevDate || (new Date().getFullYear() + '. ○○. ○○.'),
+    principal: schoolNm() + '장',
     title2: '최소 성취수준 미도달 ' + kind + ' 안내 확인서',
     commonHours: '3', commonProgram: '정서적 지원\n프로그램'
   };
@@ -1822,8 +1827,8 @@ function gtongDefaultsBC(app) {
   var sem = STATE[app].sem, yr = new Date().getFullYear();
   var u = function(t){ return '<u><b>'+t+'</b></u>'; };
   return {
-    schoolName: '광주경신여자고등학교',
-    phone1: '☎ 062-000-0000', phone2: '☎ 062-000-0000',
+    schoolName: schoolNm(),
+    phone1: SCHOOL_INFO.phoneBC || '☎ 000-000-0000', phone2: SCHOOL_INFO.phoneBC || '☎ 000-000-0000',
     bcTitle: yr+'학년도 '+sem+'학기 최소 성취수준 보장 보충지도·추가학습 안내',
     bc1: '학부모님 안녕하십니까?',
     bc2: '고교학점제가 전면 시행됨에 따라, 본교에서는 학생들이 과목별 이수 기준(학업성취율 40% 이상 및 출석률 2/3 이상)을 충족할 수 있도록 한 학기 동안 최소 성취수준 보장 예방지도를 운영해 왔습니다.',
@@ -1833,10 +1838,10 @@ function gtongDefaultsBC(app) {
     bc6: '아울러 '+u('학업성취율은 40% 이상이나 출석률이 2/3 미만인 과목의 경우에도 최소 성취수준 보장 보충지도에 준하여 추가학습을 실시')+'하며, 추가학습에 참여한 경우 그 결과를 학업성취도에 반영합니다.',
     bc7: '자녀의 과목별 이수 기준 미도달 현황을 아래와 같이 안내드리오니, 내용을 확인하신 후 확인 여부를 회신하여 주시기 바랍니다. 또한 자녀가 보충지도 및 추가학습에 성실히 참여하여 다음 학기(학년도)에 학업을 원활히 이어갈 수 있도록 가정에서도 지속적인 관심과 지지를 부탁드립니다.',
     dateText: yr+'. ○○. ○○.',
-    principal: '광주경신여자고등학교장',
+    principal: schoolNm() + '장',
     bcTitle2: '최소 성취수준 보장 보충지도·추가학습 확인서',
     bcPledge: '본인은 '+yr+'학년도 '+sem+'학기 과목 이수기준 미도달 현황을 확인하였으며, 해당 과목의 보충지도 및 추가학습 프로그램에 성실히 참여하겠습니다.',
-    principalTo: '광주경신여자고등학교장 귀하'
+    principalTo: schoolNm() + '장 귀하'
   };
 }
 function bcStudentRows(app, s) {
@@ -2761,7 +2766,7 @@ var ISU = {
     var idle = teachers.filter(function(t){ return t.role === 'teacher' && !list.some(function(c){ return c.owner === t.id; }); });
     var h = '<div class="isu-head"><div><h2>학교 전체 현황</h2><div class="isu-meta">선생님들이 입력하는 즉시 반영됩니다. 행을 누르면 그 과목을 열어 함께 고칠 수 있습니다.</div></div>' +
       '<div class="isu-head-btns">' + (ks.length ? '<select data-set="sumKey">'+ks.map(function(k){ var p=k.split('-'); return '<option value="'+k+'"'+(k===ISU.sumKey?' selected':'')+'>'+p[0]+'학년도 '+p[1]+'학기</option>'; }).join('')+'</select>' : '') +
-      '<button class="btn btn-navy2 btn-sm" data-act="toSheet"'+(list.length?'':' disabled')+'>📄 시트에 이수결과 만들기</button>' +
+      (AUTH.webappUrl ? '<button class="btn btn-teal btn-sm" data-act="invite">📨 선생님들께 보낼 안내문</button>' : '') + '<button class="btn btn-navy2 btn-sm" data-act="toSheet"'+(list.length?'':' disabled')+'>📄 시트에 이수결과 만들기</button>' +
       '<button class="btn btn-teal btn-sm" data-act="exportSummary"'+(list.length?'':' disabled')+'>⬇ 학교 전체 엑셀</button></div></div>';
     h += '<div class="kpis"><div><b>'+list.length+'</b><span>과목</span></div><div><b>'+K.bo+' / '+K.b+'</b><span>보충지도 충족</span></div><div><b>'+K.co+' / '+K.ch+'</b><span>추가학습 충족</span></div>' +
       '<div class="'+(K.none?'warn':'')+'"><b>'+K.none+'</b><span>출석 미입력 학생</span></div><div class="'+(K.todo?'warn':'')+'"><b>'+K.todo+'</b><span>할 일 남은 과목</span></div></div>';
@@ -2781,7 +2786,7 @@ var ISU = {
   accountsView: function(){
     if (!ISU.accounts) { SRV.call('accounts').then(function(r){ ISU.accounts = r.accounts; ISU.render(); }, function(e){ ISU.toast(e.message || e.error); }); return '<div class="isu-empty">계정 목록을 불러오는 중입니다…</div>'; }
     var cnt = {}; DB.data.courses.forEach(function(c){ cnt[c.owner] = (cnt[c.owner]||0) + 1; });
-    var h = '<div class="isu-head"><div><h2>계정 관리</h2><div class="isu-meta">선생님 계정을 만들고 아이디와 처음 비밀번호를 알려 주세요. 처음 로그인하면 비밀번호를 바꾸게 됩니다.</div></div></div>';
+    var h = '<div class="isu-head"><div><h2>계정 관리</h2><div class="isu-meta">선생님 계정을 만들고 아이디와 처음 비밀번호를 알려 주세요. 처음 로그인하면 비밀번호를 바꾸게 됩니다.</div></div>' + (AUTH.webappUrl ? '<div class="isu-head-btns">' + (AUTH.webappUrl ? '<button class="btn btn-teal btn-sm" data-act="invite">📨 선생님들께 보낼 안내문</button>' : '') + '</div>' : '') + '</div>';
     var nowD = new Date(), defSem = nowD.getMonth() < 7 ? '1' : '2';
     h += '<div class="isu-card"><h3>선생님·과목 한 번에 등록</h3>' +
       '<p class="isu-hint" style="margin:0 0 10px">한 줄에 <b>이름 과목 학점</b>을 적습니다(예: <code>홍길동 공통국어2 4</code>). 같은 이름의 계정이 이미 있으면 그 계정에 과목을 배정하고, 없으면 이름을 아이디로 새 계정을 만듭니다. 이미 있는 과목은 건너뜁니다.</p>' +
@@ -3243,6 +3248,7 @@ var ISU = {
     if (a === 'logout') return Login.logout();
     if (a === 'go') { DB.data.current = el.dataset.id; ISU.view = 'course'; ISU.step = el.dataset.step; return ISU.render(); }
     if (a === 'toSheet') return ISU.toSheet();
+    if (a === 'invite') return ISU.invite();
     if (a === 'bulkRun') return ISU.bulkRun();
     if (a === 'syncLists') return ISU.refreshLists(true);
     if (a === 'panel') { ISU.view = 'panel'; ISU.panel = el.dataset.panel; ISU.panelTab = el.dataset.tab || ''; return ISU.render(); }
@@ -3616,7 +3622,7 @@ var Login = {
     var h = '<form class="lg-card"><div class="lg-brand"><span class="mark"></span><b>최소 성취수준 보장지도</b></div>' + (Login.school ? '<p class="lg-school">'+esc2(Login.school)+'</p>' : '');
     if (mode === 'setup') {
       h += '<h2>처음 설정: 관리자 계정 만들기</h2><p class="lg-sub">최소 성취수준 보장지도 담당 선생님 계정입니다. 이 계정으로 선생님 계정을 만들고 전체를 관리합니다.</p>' +
-        f('school','학교 이름','text','예: 광주경신여자고등학교') + f('name','이름','text','예: 홍길동') + f('id','아이디','text','영문으로 시작 (예: admin)','username') +
+        f('school','학교 이름','text','예: ○○고등학교') + f('name','이름','text','예: 홍길동') + f('id','아이디','text','영문으로 시작 (예: admin)','username') +
         f('password','비밀번호 (6자 이상)','password','','new-password') + f('password2','비밀번호 확인','password','','new-password') +
         '<button class="btn btn-teal lg-go" type="submit">관리자 계정 만들고 시작</button>';
     } else if (mode === 'change') {
@@ -3654,7 +3660,7 @@ var Login = {
   },
   boot: function(){
     return SRV.call('bootstrap').then(function(r){
-      AUTH.user = r.user; AUTH.teachers = r.teachers || []; AUTH.sheetUrl = r.sheetUrl || '';
+      AUTH.user = r.user; AUTH.teachers = r.teachers || []; AUTH.sheetUrl = r.sheetUrl || ''; AUTH.webappUrl = r.webappUrl || ''; AUTH.school = (r.settings && r.settings.school) || Login.school || '';
       if (r.user.mustChange) { Login.show('change'); return; }
       var st = r.settings || {};
       DB.data = Object.assign(DB.blank(), { courses: r.courses || [], lists: r.lists || {}, chooCustom: st.chooCustom || [],
@@ -3690,7 +3696,7 @@ var Login = {
   logout: function(){
     // 누르는 즉시 로그인 화면으로. 남은 저장·로그아웃 처리는 뒤에서(앞 사람 로그인 정보로) 마무리
     var tok = AUTH.token, done = Promise.resolve(DB.data ? DB.flush() : null);
-    AUTH.token = null; AUTH.user = null; AUTH.teachers = []; AUTH.sheetUrl = '';
+    AUTH.token = null; AUTH.user = null; AUTH.teachers = []; AUTH.sheetUrl = ''; AUTH.webappUrl = '';
     try { localStorage.removeItem('isu-token'); } catch(e) {}
     clearInterval(Login._timer); clearTimeout(DB.timer); DB.pending = false;
     ISU.parkPanels(); ISU.accounts = null; ISU.view = 'home'; ISU.filterTeacher = ''; DB.data = null;
@@ -3701,6 +3707,58 @@ var Login = {
     Login.show('login');
     done.catch(function(){}).then(function(){ return SRV.call('logout', {}, tok); }).catch(function(){});
   }
+};
+
+/* ── 선생님들께 보낼 안내문 (주소 + QR) ── */
+ISU.inviteText = function(){
+  return '[' + (AUTH.school ? AUTH.school + ' ' : '') + '최소 성취수준 보장지도 이수 관리]\n' +
+    '아래 주소로 들어가 로그인해 주세요.\n\n' +
+    '▶ 주소: ' + AUTH.webappUrl + '\n' +
+    '▶ 아이디: 선생님 이름 (예: 홍길동)\n' +
+    '▶ 처음 비밀번호: 123456 — 처음 로그인하면 새 비밀번호로 바꿉니다.\n\n' +
+    '· 휴대폰에서는 주소를 연 뒤 ‘홈 화면에 추가’하면 앱처럼 쓸 수 있습니다.\n' +
+    '· 입력한 내용은 자동으로 저장됩니다. 다 쓰면 로그아웃해 주세요.';
+};
+ISU.invite = function(){
+  var old = document.getElementById('isu-invite'); if (old) old.remove();
+  var ov = document.createElement('div'); ov.id = 'isu-invite';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,20,30,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.innerHTML = '<div style="background:var(--surface,#fff);border-radius:14px;max-width:760px;width:100%;padding:22px 24px;box-shadow:0 20px 50px rgba(0,0,0,.25)">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h3 style="margin:0;font-size:18px">선생님들께 보낼 안내문</h3>' +
+    '<button class="btn btn-gray btn-sm" data-x="close">닫기</button></div>' +
+    '<p style="margin:0 0 12px;color:var(--ink-3,#667085);font-size:13px">복사해서 메신저나 쪽지로 보내세요. 아이디·비밀번호를 다르게 정했다면 보내기 전에 고쳐 주세요.</p>' +
+    '<div style="display:flex;gap:18px;flex-wrap:wrap"><textarea id="isu-inv-txt" spellcheck="false" style="flex:1 1 380px;min-height:230px;font:inherit;font-size:13.5px;line-height:1.6;padding:12px;border:1px solid var(--line-2,#d5dae2);border-radius:10px;resize:vertical"></textarea>' +
+    '<div style="flex:0 0 200px;text-align:center"><div id="isu-inv-qr" style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line-2,#d5dae2);border-radius:10px;color:#98a2b3;font-size:12px">QR 코드를 만드는 중입니다…</div>' +
+    '<div style="font-size:12px;color:var(--ink-3,#667085);margin-top:6px">휴대폰 카메라로 찍으면 바로 열립니다</div>' +
+    '<a id="isu-inv-qrdl" class="btn btn-gray btn-sm" style="margin-top:8px;display:none" download="이수관리_접속QR.gif">QR 이미지 저장</a></div></div>' +
+    '<div style="display:flex;gap:8px;margin-top:14px;align-items:center"><button class="btn btn-teal" data-x="copy">📋 안내문 복사</button><span id="isu-inv-msg" style="font-size:13px;color:#2f7d4a"></span></div></div>';
+  document.body.appendChild(ov);
+  var ta = document.getElementById('isu-inv-txt'); ta.value = ISU.inviteText();
+  ov.addEventListener('click', function(e){
+    var x = e.target.getAttribute && e.target.getAttribute('data-x');
+    if (e.target === ov || x === 'close') return ov.remove();
+    if (x === 'copy') {
+      var msg = document.getElementById('isu-inv-msg'), ok = function(){ msg.textContent = '복사했습니다. 메신저에 붙여넣으세요.'; };
+      ta.focus(); ta.select();
+      var done = false; try { done = document.execCommand('copy'); } catch(err) {}
+      if (done) return ok();
+      if (navigator.clipboard) navigator.clipboard.writeText(ta.value).then(ok, function(){ msg.textContent = '자동 복사가 막혀 있습니다. 글상자를 선택한 뒤 Ctrl+C를 누르세요.'; });
+      else msg.textContent = '글상자를 선택한 뒤 Ctrl+C를 누르세요.';
+    }
+  });
+  var draw = function(){
+    var box = document.getElementById('isu-inv-qr'); if (!box) return;
+    try {
+      var qr = qrcode(0, 'M'); qr.addData(AUTH.webappUrl); qr.make();
+      var url = qr.createDataURL(6, 4);
+      box.innerHTML = '<img alt="접속 QR 코드" src="' + url + '" style="width:190px;height:190px;image-rendering:pixelated">';
+      var dl = document.getElementById('isu-inv-qrdl'); dl.href = url; dl.style.display = 'inline-flex';
+    } catch(err) { box.textContent = 'QR 코드를 만들지 못했습니다. 안내문의 주소를 보내 주세요.'; }
+  };
+  if (typeof qrcode === 'function') return draw();
+  var sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+  sc.onload = draw; sc.onerror = function(){ var b = document.getElementById('isu-inv-qr'); if (b) b.textContent = 'QR 코드를 불러오지 못했습니다(인터넷 연결 확인). 안내문의 주소를 보내 주세요.'; };
+  document.head.appendChild(sc);
 };
 
 /* ── 시작 ── */

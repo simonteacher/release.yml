@@ -421,8 +421,10 @@ function apiBootstrap_(user) {
   var teachers = accounts_().filter(function (x) { return x.active; }).map(function (x) { return { id: x.id, name: x.name, role: x.role }; });
   if (user.role !== 'admin') teachers = teachers.filter(function (x) { return x.id === user.id; });
   return { user: publicUser_(a), settings: settings_(), courses: visibleCourses_(user), lists: listsFor_(user), teachers: teachers,
-           sheetUrl: user.role === 'admin' ? ss_().getUrl() : '' };
+           sheetUrl: user.role === 'admin' ? ss_().getUrl() : '', webappUrl: user.role === 'admin' ? webappUrl_() : '' };
 }
+
+function webappUrl_() { try { return ScriptApp.getService().getUrl() || ''; } catch (e) { return ''; } }
 
 /* ───────────────────────── 관리자: 결과 시트·기록 ───────────────────────── */
 function apiExportResults_(user, p) {
@@ -441,4 +443,71 @@ function apiExportResults_(user, p) {
 function apiLog_() {
   var r = rows_('log'); r = r.slice(Math.max(0, r.length - 200)).reverse();
   return { log: r.map(function (x) { return { at: when_(x[0]), id: String(x[1]), action: String(x[2]), target: String(x[3]) }; }) };
+}
+
+/* ───────────────────────── 시트 메뉴 · 시작하기 안내 ─────────────────────────
+   시트를 열면 위쪽에 ‘🛠 이수 관리’ 메뉴가 생기고, 아직 설정 전이면 ‘시작하기’ 탭을 만들어 둡니다. */
+var GUIDE_TAB = '시작하기';
+function onOpen() {
+  try {
+    SpreadsheetApp.getUi().createMenu('🛠 이수 관리')
+      .addItem('웹앱 주소 확인 · 처음 설정 안내', 'showSetupGuide')
+      .addItem('‘시작하기’ 탭 다시 만들기', 'makeGuideTab')
+      .addToUi();
+  } catch (e) {}
+  try { if (!ss_().getSheetByName(GUIDE_TAB) && !ss_().getSheetByName(SHEET_NAMES.accounts)) makeGuideTab(); } catch (e) {}
+}
+function inSheet_() { try { SpreadsheetApp.getUi(); return true; } catch (e) { return false; } }   // 웹앱에서 호출하면 아무것도 하지 않음
+function makeGuideTab() {
+  if (!inSheet_()) return;
+  var ss = ss_(), sh = ss.getSheetByName(GUIDE_TAB);
+  if (sh) sh.clear(); else sh = ss.insertSheet(GUIDE_TAB, 0);
+  var rows = [
+    ['최소 성취수준 보장지도 · 이수 관리 — 처음 설정 (약 5분)', ''],
+    ['', '이 시트가 학교의 데이터 저장소입니다. 아래 순서대로 한 번만 설정하면 됩니다.'],
+    ['1', '위쪽 메뉴 [확장 프로그램] → [Apps Script]를 엽니다. (코드는 이미 들어 있으니 고칠 필요가 없습니다)'],
+    ['2', 'Apps Script 화면 오른쪽 위 파란 [배포] → [새 배포]를 누릅니다.'],
+    ['3', '‘유형 선택’ 옆 톱니바퀴 ⚙ → [웹 앱]을 고릅니다.'],
+    ['4', '다음 사용자 인증정보로 실행: [나]  /  액세스 권한이 있는 사용자: [모든 사용자] 로 정하고 [배포]를 누릅니다.'],
+    ['', '※ 교육청(학교) 구글 계정에서 ‘모든 사용자’가 안 보이면, 개인 구글 계정으로 이 시트를 다시 복사해 진행하세요.'],
+    ['5', '[액세스 승인] → 내 계정 선택 → ‘Google에서 확인하지 않은 앱’ 화면이 나오면 왼쪽 아래 [고급] → [… (안전하지 않음)으로 이동] → [허용]을 누릅니다.'],
+    ['', '※ 내가 복사한 내 시트의 코드라서 나오는 일반적인 안내입니다. 데이터는 이 시트에만 저장됩니다.'],
+    ['6', '‘웹 앱’ 아래 주소(…/exec)를 [복사]해서 인터넷 창에 붙여넣어 엽니다.'],
+    ['7', '첫 화면에서 학교 이름과 관리자(담당 선생님) 계정을 만듭니다.'],
+    ['8', '왼쪽 [👥 계정 관리]에 ‘이름 과목 학점’을 한 줄씩 붙여넣고 [한 번에 등록]을 누릅니다. (예: 홍길동 공통국어2 4)'],
+    ['9', '[📨 선생님들께 보낼 안내문]을 눌러 주소와 QR 코드를 선생님들께 보냅니다.'],
+    ['10', '명단은 이 시트의 ‘예방지도 명단 · 보충지도 명단 · 추가학습 명단’ 탭에 붙여넣으면 자동으로 연동됩니다. (탭은 처음 로그인할 때 생깁니다)'],
+    ['', ''],
+    ['알아 두세요', '· 이 시트에는 학생 개인정보와 계정 정보가 저장됩니다. 다른 사람과 공유하지 마세요.'],
+    ['', '· 웹앱 주소는 위쪽 메뉴 [🛠 이수 관리] → [웹앱 주소 확인]에서 언제든 다시 볼 수 있습니다.'],
+    ['', '· 새 버전 코드를 받으면 Apps Script에서 파일 내용을 바꾼 뒤 [배포] → [배포 관리] → ✏️ → 버전 [새 버전] → [배포]를 누릅니다. (주소는 그대로입니다)'],
+    ['', '· 이 탭은 지워도 됩니다. 필요하면 [🛠 이수 관리] → [‘시작하기’ 탭 다시 만들기]로 다시 만들 수 있습니다.']
+  ];
+  sh.getRange(1, 1, rows.length, 2).setValues(rows);
+  sh.setColumnWidth(1, 90); sh.setColumnWidth(2, 900);
+  sh.getRange(1, 1, rows.length, 2).setVerticalAlignment('middle').setWrap(true).setFontSize(11);
+  sh.getRange(1, 1, 1, 2).merge().setFontSize(16).setFontWeight('bold').setFontColor('#ffffff').setBackground('#5b3d99');
+  sh.setRowHeight(1, 44);
+  sh.getRange(3, 1, 12, 1).setHorizontalAlignment('center').setFontWeight('bold').setFontColor('#5b3d99');
+  sh.getRange(16, 1).setFontWeight('bold');
+  [7, 9].forEach(function (r) { sh.getRange(r, 2).setFontColor('#667085').setFontSize(10); });
+  sh.setHiddenGridlines(true);
+  ss.setActiveSheet(sh);
+  var blank = ss.getSheetByName('시트1') || ss.getSheetByName('Sheet1');
+  if (blank && blank.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(blank);
+}
+function showSetupGuide() {
+  if (!inSheet_()) return;
+  var url = webappUrl_(), esc = function (x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
+  var h = '<div style="font-family:sans-serif;font-size:13px;line-height:1.6;color:#1c2433">' +
+    (url ? '<p style="margin:0 0 6px"><b>✅ 웹앱이 배포되어 있습니다.</b></p><p style="margin:0 0 4px">주소(선생님들께 보낼 주소):</p>' +
+           '<textarea readonly style="width:100%;height:70px;font-size:12px" onclick="this.select()">' + esc(url) + '</textarea>' +
+           '<p><a href="' + esc(url) + '" target="_blank">웹앱 열기</a></p>'
+         : '<p style="margin:0 0 6px"><b>아직 웹앱으로 배포하지 않았습니다.</b></p>') +
+    '<p style="margin:12px 0 4px"><b>배포 순서</b></p><ol style="padding-left:18px;margin:0">' +
+    '<li>[확장 프로그램] → [Apps Script]</li><li>[배포] → [새 배포]</li><li>⚙ → [웹 앱]</li>' +
+    '<li>실행: [나] / 액세스: [모든 사용자] → [배포]</li><li>[액세스 승인] → [고급] → [이동] → [허용]</li>' +
+    '<li>나온 주소(…/exec)를 열어 관리자 계정 만들기</li></ol>' +
+    '<p style="color:#667085;font-size:12px;margin-top:12px">자세한 설명은 ‘시작하기’ 탭을 보세요.</p></div>';
+  SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutput(h).setTitle('이수 관리 설정 안내'));
 }
