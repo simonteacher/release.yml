@@ -9,6 +9,8 @@ on:
     paths:
       - 'index.html'
       - 'main.js'
+      - 'preload.js'
+      - 'fonts/**'
       - 'package.json'
       - 'package-lock.json'
       - 'build/**'

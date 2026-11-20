@@ -1,5 +1,6 @@
-const { app, BrowserWindow, Menu, shell, dialog } = require('electron');
+const { app, BrowserWindow, Menu, shell, dialog, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 const APP_TITLE = '최소 성취수준 보장지도 시스템';
 const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000; // 켜 둔 상태에서도 4시간마다 확인
@@ -10,6 +11,40 @@ let manualCheck = false;     // 메뉴에서 직접 확인했을 때만 "최신 
 let updateReady = false;
 let downloading = false;
 let readyInfo = null;
+
+// ── PC 저장소 (내 문서가 아닌 앱 전용 폴더에 JSON으로 저장) ─────────
+// 위치: %APPDATA%\최소성취수준보장지도\data
+const dataDir = () => path.join(app.getPath('userData'), 'data');
+const dataFile = () => path.join(dataDir(), 'isu-data.json');
+const backupDir = () => path.join(app.getPath('userData'), 'backups');
+const KEEP_BACKUPS = 30;
+
+function writeAtomic(file, text) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const tmp = file + '.tmp';
+  fs.writeFileSync(tmp, text, 'utf8');
+  fs.renameSync(tmp, file);           // 저장 도중 꺼져도 기존 파일이 깨지지 않음
+}
+function dailyBackup() {
+  try {
+    if (!fs.existsSync(dataFile())) return;
+    fs.mkdirSync(backupDir(), { recursive: true });
+    const d = new Date();
+    const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const target = path.join(backupDir(), `isu-${stamp}.json`);
+    if (!fs.existsSync(target)) fs.copyFileSync(dataFile(), target);
+    const old = fs.readdirSync(backupDir()).filter(f => /^isu-\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
+    old.slice(0, Math.max(0, old.length - KEEP_BACKUPS)).forEach(f => fs.unlinkSync(path.join(backupDir(), f)));
+  } catch (e) { /* 백업 실패는 프로그램 사용을 막지 않음 */ }
+}
+ipcMain.handle('store:load', () => {
+  try { return fs.readFileSync(dataFile(), 'utf8'); } catch (e) { return null; }
+});
+ipcMain.handle('store:save', (e, text) => { writeAtomic(dataFile(), text); return true; });
+ipcMain.on('store:saveSync', (e, text) => {
+  try { writeAtomic(dataFile(), text); e.returnValue = true; } catch (err) { e.returnValue = false; }
+});
+ipcMain.handle('store:openFolder', () => { fs.mkdirSync(dataDir(), { recursive: true }); return shell.openPath(app.getPath('userData')); });
 
 // ── 중복 실행 방지 ─────────────────────────────────────────
 if (!app.requestSingleInstanceLock()) {
@@ -74,7 +109,7 @@ function setupUpdater() {
       title: '업데이트 준비 완료',
       message: `새 버전(${info.version}) 설치 준비가 끝났습니다.`,
       detail: '지금 다시 시작하면 바로 적용됩니다.\n\n' +
-              '※ 작업 중인 내용은 저장되지 않습니다. 필요하면 먼저 "엑셀 다운로드"로 저장한 뒤 다시 시작하세요.\n' +
+              '※ 이수 관리와 선정 명단은 자동 저장되어 그대로 남습니다. 가정통신문에서 직접 고친 문구는 저장되지 않습니다.\n' +
               '"나중에"를 누르면 프로그램을 종료할 때 자동으로 설치됩니다.',
       buttons: ['지금 다시 시작', '나중에'],
       defaultId: 1, cancelId: 1, noLink: true
@@ -130,7 +165,7 @@ function manualUpdateCheck() {
 function create() {
   win = new BrowserWindow({
     width: 1400, height: 900, show: false, title: APP_TITLE,
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false }
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') }
   });
   win.once('ready-to-show', () => { win.maximize(); win.show(); });
   win.loadFile(path.join(__dirname, 'index.html'));
@@ -155,7 +190,7 @@ function create() {
     const r = dialog.showMessageBoxSync(win, {
       type: 'question', buttons: ['종료', '취소'], defaultId: 1, cancelId: 1, noLink: true,
       title: '종료 확인', message: '프로그램을 종료할까요?',
-      detail: '저장(엑셀 다운로드)하지 않은 작업 내용은 사라집니다.' +
+      detail: '이수 관리와 선정 명단은 자동 저장됩니다.\n가정통신문에서 직접 고친 문구는 저장되지 않으니 필요하면 먼저 인쇄해 두세요.' +
               (updateReady ? '\n\n종료하면 받아 둔 새 버전이 자동으로 설치됩니다.' : '')
     });
     if (r === 1) e.preventDefault(); else quitting = true;
@@ -165,7 +200,8 @@ function create() {
 
 Menu.setApplicationMenu(Menu.buildFromTemplate([
   { label: '파일', submenu: [
-    { role: 'reload', label: '새로고침 (입력 내용 초기화)' },
+    { label: '데이터 폴더 열기', click: () => { fs.mkdirSync(dataDir(), { recursive: true }); shell.openPath(app.getPath('userData')); } },
+    { role: 'reload', label: '새로고침' },
     { type: 'separator' },
     { role: 'quit', label: '종료' }
   ] },
@@ -183,5 +219,5 @@ Menu.setApplicationMenu(Menu.buildFromTemplate([
   ] }
 ]));
 
-app.whenReady().then(() => { create(); setupUpdater(); });
+app.whenReady().then(() => { dailyBackup(); create(); setupUpdater(); });
 app.on('window-all-closed', () => app.quit());
