@@ -7,11 +7,10 @@
  */
 
 var APP_TITLE = '최소 성취수준 보장지도';
-var SHEET_NAMES = { accounts: '계정', courses: '과목', lists: '선정명단', settings: '설정', log: '기록' };
+var SHEET_NAMES = { accounts: '계정', courses: '과목', settings: '설정', log: '기록' };
 var HEADERS = {
   accounts: ['아이디', '이름', '역할', 'salt', 'hash', '사용', '비밀번호변경필요', '마지막로그인', '만든시각'],
   courses: ['id', '학년도', '학기', '과목', '학년', '담당아이디', '담당교사', '버전', '수정시각', '수정자', '데이터'],
-  lists: ['프로그램', '학기', '파일명', '저장시각', '저장자', '데이터'],
   settings: ['키', '값'],
   log: ['시각', '아이디', '동작', '대상']
 };
@@ -41,7 +40,7 @@ function api(token, action, payload) {
     var fn = {
       logout: apiLogout_, bootstrap: apiBootstrap_, lists: apiLists_,
       saveCourse: apiSaveCourse_, deleteCourse: apiDeleteCourse_, changePassword: apiChangePassword_,
-      saveList: adminOnly_(apiSaveList_), accounts: adminOnly_(apiAccounts_), saveAccount: adminOnly_(apiSaveAccount_),
+      accounts: adminOnly_(apiAccounts_), saveAccount: adminOnly_(apiSaveAccount_),
       resetPassword: adminOnly_(apiResetPassword_), saveSettings: adminOnly_(apiSaveSettings_),
       exportResults: adminOnly_(apiExportResults_), log: adminOnly_(apiLog_)
     }[action];
@@ -172,6 +171,7 @@ function apiSetup_(p) {
     var a = { id: id, name: name, role: 'admin', salt: salt, hash: hash_(pw, salt), active: true, mustChange: false, lastLogin: now_(), created: now_() };
     a.row = writeAccount_(a);
     if (p.school) saveSetting_('school', String(p.school).trim());
+    ensureListTabs_();
     log_(a, '최초 관리자 설정', id);
     return { token: newToken_(a), user: publicUser_(a) };
   });
@@ -304,10 +304,90 @@ function apiDeleteCourse_(user, p) {
   });
 }
 
-/* ───────────────────────── 선정 명단 ───────────────────────── */
+/* ───────────────────────── 선정 명단 (구글 시트 탭에서 자동 연동) ─────────────────────────
+ * 담당자가 아래 세 탭에 명단을 붙여넣으면 프로그램이 읽어 갑니다.
+ *  - 가로형(기존 엑셀 양식): 학년 | 반 | 번호 | 이름 | 공통국어1 | 공통수학1 | … 과목 칸에 ○(또는 O, 1, ✓, 체크박스)
+ *  - 세로형(한 줄에 한 과목): 학년 | 반 | 번호 | 이름 | 과목      (나이스 자료처럼)
+ * 머리글 위에 제목 줄이 있어도 됩니다(위 15줄 안에서 '반·번호·이름' 머리글을 찾음). */
+var LIST_TABS = { prev: '예방지도 명단', boch: '보충지도 명단', choo: '추가학습 명단' };
+var BASE_SUBJ = ['공통국어1', '공통수학1', '공통영어1', '통합사회1', '통합과학1', '과학탐구실험1', '한국사1'];
+var SUBJ_ALIAS = {
+  '국어1':'공통국어1','수학1':'공통수학1','영어1':'공통영어1','사회1':'통합사회1','과학1':'통합과학1',
+  '과탐실1':'과학탐구실험1','과탐1':'과학탐구실험1','과학탐구실험':'과학탐구실험1','과탐실':'과학탐구실험1','한국사':'한국사1',
+  '국어2':'공통국어2','수학2':'공통수학2','영어2':'공통영어2','사회2':'통합사회2','과학2':'통합과학2',
+  '과탐실2':'과학탐구실험2','과탐2':'과학탐구실험2','음악':'음악1','미술':'미술1','체육':'체육1'
+};
+var NOT_SUBJECT = /^(학년|반|번호|이름|성명|학번|연번|순번|과목수|합계|비고|학적변동|편제|학점|학점당시수|구분|학생구분)$|출석률|성취|시수|기준|여부|사유/;
+function normSubj_(raw) {
+  var s = String(raw == null ? '' : raw).replace(/_x000D_/g, '').replace(/\s+/g, '');
+  if (!s) return '';
+  return SUBJ_ALIAS[s] || s;
+}
+function isMark_(v) { return /^(○|◯|●|o|y|1|v|✓|✔|√|true)$/i.test(String(v == null ? '' : v).trim()); }
+function ensureListTabs_() {
+  Object.keys(LIST_TABS).forEach(function (app) {
+    if (ss_().getSheetByName(LIST_TABS[app])) return;
+    var sh = ss_().insertSheet(LIST_TABS[app]);
+    var h = ['학년', '반', '번호', '이름'].concat(BASE_SUBJ).concat(app === 'choo' ? ['음악1', '미술1', '체육1'] : []);
+    sh.getRange(1, 1, 1, h.length).setValues([h]);
+    sh.setFrozenRows(1);
+  });
+}
+function parseListTab_(app) {
+  var name = LIST_TABS[app], sh = ss_().getSheetByName(name);
+  var res = { sem: '1', filename: '구글 시트 · ' + name, savedAt: now_(), students: [], problems: [], subjects: [] };
+  if (!sh) { res.problems.push('‘' + name + '’ 탭이 없습니다.'); return res; }
+  var n = sh.getLastRow(), w = sh.getLastColumn();
+  if (n < 2 || w < 1) return res;              // 머리글만 있거나 비어 있음
+  var v = sh.getRange(1, 1, n, w).getDisplayValues();
+  var hr = -1, col = {};
+  for (var r = 0; r < Math.min(v.length, 15) && hr < 0; r++) {
+    var row = v[r].map(function (x) { return String(x).replace(/\s+/g, ''); });
+    if (row.indexOf('반') >= 0 && row.indexOf('번호') >= 0 && (row.indexOf('이름') >= 0 || row.indexOf('성명') >= 0)) {
+      hr = r; col = { subj: {} };
+      row.forEach(function (h, i) {
+        if (h === '학년') col.grade = i; else if (h === '반') col.cls = i; else if (h === '번호') col.num = i;
+        else if (h === '이름' || h === '성명') col.name = i; else if (h === '과목') col.long = i;
+        else if (h && !NOT_SUBJECT.test(h)) col.subj[i] = normSubj_(h);
+      });
+    }
+  }
+  if (hr < 0) { res.problems.push('‘' + name + '’ 탭에서 반·번호·이름 머리글을 찾지 못했습니다. 첫 줄에 학년 | 반 | 번호 | 이름 | 과목… 을 적어 주세요.'); return res; }
+  var by = {}, order = [], skipped = 0, noGrade = col.grade === undefined, clash = 0, lastCls = '', lastGrade = '', subjSeen = {};
+  Object.keys(col.subj).forEach(function (i) { subjSeen[col.subj[i]] = 1; });
+  for (var k = hr + 1; k < v.length; k++) {
+    var x = v[k], nm = String(x[col.name] || '').trim();
+    var clsRaw = String(x[col.cls] || '').trim(); if (clsRaw) lastCls = clsRaw; else if (nm) clsRaw = lastCls;     // 병합된 반 칸
+    var gRaw = col.grade !== undefined ? String(x[col.grade] || '').trim() : ''; if (gRaw) lastGrade = gRaw; else if (nm && col.grade !== undefined) gRaw = lastGrade;
+    if (!nm || nm === '이름' || nm === '성명') { if (String(x.join('')).trim()) skipped++; continue; }
+    var g = parseInt(gRaw.replace(/\D/g, ''), 10), cTxt = clsRaw.replace(/반$/, '').replace(/\s/g, ''), c, nmb = parseInt(String(x[col.num] || '').replace(/\D/g, ''), 10);
+    if (/^\d+-\d+$/.test(cTxt)) { if (!g) g = parseInt(cTxt.split('-')[0], 10); c = parseInt(cTxt.split('-')[1], 10); }
+    else c = parseInt(cTxt.replace(/\D/g, ''), 10);
+    if (!g) g = 1;
+    if (!c || !nmb) { skipped++; continue; }
+    var key = g + '-' + c + '-' + nmb, st = by[key];
+    if (!st) { st = by[key] = { grade: g, cls: c, num: nmb, name: nm, subjects: {} }; order.push(key); }
+    else if (st.name !== nm) clash++;
+    if (col.long !== undefined) {
+      var sj = normSubj_(x[col.long]); if (sj) { st.subjects[sj] = true; subjSeen[sj] = 1; }
+    } else Object.keys(col.subj).forEach(function (i) {
+      var sj2 = col.subj[i];
+      if (isMark_(x[i])) st.subjects[sj2] = true; else if (!(sj2 in st.subjects)) st.subjects[sj2] = false;
+    });
+  }
+  res.students = order.map(function (k2) { return by[k2]; }).sort(function (a, b) { return a.grade - b.grade || a.cls - b.cls || a.num - b.num; });
+  res.subjects = Object.keys(subjSeen);
+  var two = res.subjects.filter(function (s) { return /2$/.test(s); }).length, one = res.subjects.filter(function (s) { return /1$/.test(s); }).length;
+  res.sem = two > one ? '2' : '1';
+  if (noGrade && res.students.length && !res.students.some(function (s) { return s.cls >= 100; })) res.problems.push('‘' + name + '’ 탭에 학년 열이 없어 모두 1학년으로 처리했습니다(반 칸에 2-3처럼 적으면 학년도 인식합니다).');
+  if (skipped) res.problems.push('‘' + name + '’ 탭에서 반·번호가 비었거나 숫자가 아닌 ' + skipped + '줄은 건너뛰었습니다.');
+  if (clash) res.problems.push('‘' + name + '’ 탭에 같은 학년·반·번호인데 이름이 다른 줄이 ' + clash + '개 있습니다. 확인해 주세요.');
+  return res;
+}
 function allLists_() {
+  ensureListTabs_();
   var o = {};
-  rows_('lists').forEach(function (r, i) { var app = String(r[0]); if (app) { var rec = unpack_(r, 5); if (rec) o[app] = rec; } });
+  Object.keys(LIST_TABS).forEach(function (app) { o[app] = parseListTab_(app); });
   return o;
 }
 /** 교사에게는 자기 과목에 해당하는 학생·과목만 보냄 */
@@ -324,21 +404,9 @@ function listsFor_(user) {
       Object.keys(s.subjects || {}).forEach(function (k) { if (subj[k] && s.subjects[k]) { sub[k] = true; any = true; } });
       return any ? { grade: s.grade, cls: s.cls, num: s.num, name: s.name, subjects: sub } : null;
     }).filter(Boolean);
-    out[app] = { sem: rec.sem, filename: rec.filename, savedAt: rec.savedAt, students: st };
+    out[app] = { sem: rec.sem, filename: rec.filename, savedAt: rec.savedAt, students: st, subjects: (rec.subjects || []).filter(function (k) { return subj[k]; }) };
   });
   return out;
-}
-function apiSaveList_(user, p) {
-  return withLock_(function () {
-    var app = String(p.app); if (['prev', 'boch', 'choo'].indexOf(app) < 0) fail_('INVALID', '프로그램 구분이 잘못되었습니다.');
-    var rec = p.rec || {}, idx = -1;
-    rows_('lists').forEach(function (r, i) { if (String(r[0]) === app) idx = i; });
-    if (rec.students && rec.students.length) {
-      writeRow_('lists', idx >= 0 ? idx + 2 : 0, [app, String(rec.sem || ''), txt_(rec.filename || ''), now_(), user.id].concat(pack_(rec)));
-    } else if (idx >= 0) deleteRow_('lists', idx + 2);
-    log_(user, '선정 명단 저장', app + ' ' + (rec.filename || '') + ' ' + ((rec.students || []).length) + '명');
-    return {};
-  });
 }
 function apiLists_(user) { return { lists: listsFor_(user) }; }
 
@@ -347,7 +415,8 @@ function apiBootstrap_(user) {
   var a = findAccount_(user.id);
   var teachers = accounts_().filter(function (x) { return x.active; }).map(function (x) { return { id: x.id, name: x.name, role: x.role }; });
   if (user.role !== 'admin') teachers = teachers.filter(function (x) { return x.id === user.id; });
-  return { user: publicUser_(a), settings: settings_(), courses: visibleCourses_(user), lists: listsFor_(user), teachers: teachers };
+  return { user: publicUser_(a), settings: settings_(), courses: visibleCourses_(user), lists: listsFor_(user), teachers: teachers,
+           sheetUrl: user.role === 'admin' ? ss_().getUrl() : '' };
 }
 
 /* ───────────────────────── 관리자: 결과 시트·기록 ───────────────────────── */
