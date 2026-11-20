@@ -1,0 +1,64 @@
+name: 빌드 및 배포
+
+# index.html 등 프로그램 파일을 고쳐서 main 브랜치에 올리면
+# 버전을 자동으로 올려 Windows 설치 파일을 만들고 GitHub Release로 배포합니다.
+# 설치된 프로그램은 다음 실행 때(또는 4시간마다) 이 Release를 보고 업데이트 알림을 띄웁니다.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'main.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'build/**'
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: '변경 내용 (업데이트 알림에 표시됨, 비우면 커밋 메시지 사용)'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 버전 자동 지정 (major.minor는 package.json, 마지막 자리는 배포 번호)
+        id: ver
+        shell: bash
+        run: |
+          BASE=$(node -p "require('./package.json').version.split('.').slice(0,2).join('.')")
+          VERSION="$BASE.${{ github.run_number }}"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: 변경 내용 작성
+        shell: bash
+        env:
+          INPUT_NOTES: ${{ github.event.inputs.notes }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          mkdir -p build
+          if [ -n "$INPUT_NOTES" ]; then echo "$INPUT_NOTES"; elif [ -n "$COMMIT_MSG" ]; then echo "$COMMIT_MSG"; else echo "기능 개선"; fi > build/release-notes.md
+          cat build/release-notes.md
+
+      - name: 빌드 및 Release 발행
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --publish always -c.win.signAndEditExecutable=true
