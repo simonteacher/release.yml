@@ -139,7 +139,7 @@ function checkPassword_(pw) {
 }
 function checkId_(id) {
   id = String(id || '').trim();
-  if (!/^[A-Za-z][A-Za-z0-9._-]{1,29}$/.test(id)) fail_('INVALID', '아이디는 영문으로 시작하는 영문·숫자 2~30자로 정해 주세요(예: kim01).');
+  if (!/^[A-Za-z가-힣][A-Za-z0-9가-힣._-]{1,29}$/.test(id)) fail_('INVALID', '아이디는 한글 이름이나 영문으로 시작하는 2~30자로 정해 주세요(예: 홍길동, kim01).');
   return id;
 }
 function publicUser_(a) { return { id: a.id, name: a.name, role: a.role, mustChange: !!a.mustChange }; }
