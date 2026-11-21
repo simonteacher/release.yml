@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>개인정보처리방침 · 최소성취수준 이수관리</title>
+<style>
+body { margin: 0; font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; color: #1c2433; background: #fff; line-height: 1.75; }
+main { max-width: 760px; margin: 0 auto; padding: 48px 24px 72px; }
+a { color: #5b3d99; }
+h1 { font-size: 28px; letter-spacing: -.5px; margin: 0 0 6px; }
+h2 { font-size: 18px; margin: 34px 0 8px; }
+.meta { color: #667085; margin: 0 0 28px; }
+li { margin: 4px 0; }
+code { background: #f2f1f6; padding: 1px 6px; border-radius: 4px; font-size: 14px; }
+.en { margin-top: 44px; padding-top: 20px; border-top: 1px solid #e6e3ee; color: #475467; font-size: 14.5px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="./">← 최소성취수준 이수관리</a></p>
+<h1>개인정보처리방침</h1>
+<p class="meta">시행일: 2026년 11월 21일</p>
+
+<p>‘최소성취수준 이수관리’(이하 ‘프로그램’)는 학교가 최소 성취수준 보장지도(예방지도·보충지도·추가학습)의 출석과 이수 결과를 관리하도록 돕는 무료 프로그램입니다. 프로그램 배포자는 학생·교사의 개인정보를 받거나 보관하지 않습니다.</p>
+
+<h2>1. 정보가 저장되는 곳</h2>
+<ul>
+<li><b>학교 구글 계정 방식</b>: 학교 담당 선생님이 로그인한 구글 계정의 드라이브에 만들어지는 구글 시트에만 저장됩니다. 그 시트의 주인은 학교 담당 선생님이며, 배포자는 접근할 수 없습니다.</li>
+<li><b>이 PC에서만 쓰기 방식</b>: 프로그램을 설치한 PC 안에만 저장됩니다.</li>
+<li>저장되는 정보: 학생의 학년·반·번호·이름, 지도 참여 날짜와 이수 결과, 선생님 계정(아이디, 이름, 암호화된 비밀번호).</li>
+</ul>
+
+<h2>2. 구글 계정 권한을 쓰는 이유</h2>
+<p>담당 선생님이 ‘구글 계정으로 학교 설정하기’를 고르면, 프로그램은 다음 권한을 요청합니다. 모든 작업은 담당 선생님의 구글 계정 안에서만 이루어집니다.</p>
+<ul>
+<li><code>drive.file</code>: 프로그램이 만든 학교 데이터 시트 하나에만 접근합니다. 드라이브의 다른 파일은 볼 수 없습니다.</li>
+<li><code>script.projects</code>, <code>script.deployments</code>: 그 시트에 프로그램 코드를 넣고 학교 전용 웹앱으로 배포하며, 프로그램이 업데이트될 때 같은 코드를 새 버전으로 바꿉니다.</li>
+<li><code>email</code>, <code>openid</code>: 어느 계정으로 설정했는지 프로그램 화면에 보여 주는 데만 씁니다.</li>
+</ul>
+<p>구글 로그인 정보(갱신 토큰)는 설정한 PC 안에 운영체제의 암호화 저장 기능으로 보관되며, 다른 곳으로 보내지 않습니다. Google API에서 받은 정보는 Google API 서비스 사용자 데이터 정책(제한적 사용 요건 포함)을 따릅니다.</p>
+
+<h2>3. 제3자 제공·광고</h2>
+<p>개인정보를 제3자에게 제공하거나 판매하지 않으며, 광고나 분석 목적으로 사용하지 않습니다.</p>
+
+<h2>4. 보관과 삭제</h2>
+<ul>
+<li>학교 데이터는 학교가 직접 관리합니다. 구글 드라이브의 ‘최소성취수준 이수관리 (학교 데이터)’ 시트를 지우면 모두 삭제됩니다.</li>
+<li>프로그램의 구글 접근 권한은 <a href="https://myaccount.google.com/permissions">Google 계정 → 보안 → 서드 파티 액세스</a>에서 언제든 해제할 수 있습니다.</li>
+<li>프로그램을 제거하면 PC에 저장된 로그인 정보와 설정도 지워집니다.</li>
+</ul>
+
+<h2>5. 문의</h2>
+<p>프로그램 관련 문의는 <a href="https://github.com/simonteacher/release.yml/issues">GitHub 문의 게시판</a>을 이용해 주세요. 학생 정보에 관한 열람·정정·삭제 요청은 해당 학교로 해 주세요.</p>
+
+<div class="en">
+<p><b>English summary.</b> This free app helps schools record attendance and completion for minimum-achievement support programs. The developer does not collect or store any personal data. With Google sign-in, the app uses <code>drive.file</code> to create and access only its own spreadsheet, and <code>script.projects</code>/<code>script.deployments</code> to install and update the school's web app in the signed-in user's own account. Tokens stay on the user's PC, encrypted by the OS. Data is never sold, shared with third parties, or used for advertising. The app's use of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. Access can be revoked at any time at myaccount.google.com/permissions.</p>
+</div>
+</main>
+</body>
+</html>
