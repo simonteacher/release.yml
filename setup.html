@@ -51,6 +51,9 @@ li.wait .t { color: #98a2b3; }
 .box.info { background: #f1edfa; border: 1px solid #ddd2f3; }
 .box p { margin: 0 0 8px; }
 .box ol { margin: 4px 0 10px; padding-left: 20px; }
+.clip { display: none; background: #fff; border: 2px solid #0b7a6f; border-radius: 14px; padding: 18px 22px; margin-bottom: 14px; }
+.clip.on { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.clip b.big { font-size: 18px; display: block; margin: 2px 0; }
 .prev { display: none; background: #e3f4f1; border: 1px solid #b6e0d8; border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; }
 .prev.on { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .msg { min-height: 20px; margin-top: 8px; font-size: 13px; }
@@ -63,6 +66,13 @@ code { background: #f0f2f5; padding: 0 5px; border-radius: 4px; font-size: 12.5p
   <div class="brand"><div class="mk"></div><b>최소 성취수준 보장지도 · 이수 관리</b></div>
   <h1>처음 한 번만 설정합니다</h1>
   <p class="sub">학교에서 맡은 역할에 맞는 방법을 고르세요.</p>
+
+  <div class="clip" id="clip" role="status">
+    <div><span class="who" style="color:#0b7a6f;background:#e3f4f1">교과 선생님</span>
+      <b class="big" id="clipSchool">학교 주소를 찾았습니다</b>
+      <span class="small">복사해 둔 안내문에서 학교 주소를 찾았습니다. 연결하면 바로 로그인 화면이 나옵니다.</span><br><span class="small" id="clipUrl"></span></div>
+    <button class="teal" id="clipGo" style="font-size:16px;padding:12px 26px">이 학교에 연결</button>
+  </div>
 
   <div class="prev" id="prev">
     <div><b>이 PC에서 만든 학교 연결이 있습니다.</b><br><span class="small" id="prevUrl"></span></div>
@@ -125,7 +135,7 @@ code { background: #f0f2f5; padding: 0 5px; border-radius: 4px; font-size: 12.5p
   <section class="card t">
     <span class="who">교과 선생님</span>
     <h2>학교 주소 연결하기</h2>
-    <p class="desc">담당 선생님이 보내 준 안내문의 <b>주소</b>(…/exec로 끝남)를 붙여넣으세요. 안내문을 통째로 붙여넣어도 됩니다.</p>
+    <p class="desc">담당 선생님이 보내 준 안내문을 <b>복사</b>해 두면 이 화면 맨 위에 학교가 자동으로 나타납니다. 안 나타나면 안내문(또는 …/exec로 끝나는 주소)을 아래에 붙여넣으세요.</p>
     <div class="row">
       <input id="url" placeholder="https://script.google.com/macros/s/…/exec">
       <button class="teal" id="goUrl">연결</button>
@@ -189,6 +199,20 @@ code { background: #f0f2f5; padding: 0 5px; border-radius: 4px; font-size: 12.5p
     if (confirm('이 PC에서만 쓰는 방식으로 시작할까요?\n나중에 [파일] → [학교 연결 설정]에서 바꿀 수 있습니다.')) A.useLocal();
   };
   $('prevGo').onclick = function () { A.usePrevious(); };
+  // 복사해 둔 안내문에서 학교 주소 찾기 (화면을 열 때, 다시 이 창으로 돌아올 때)
+  var clipUrl = '';
+  function checkClip() {
+    A.clipboard().then(function (c) {
+      if (!c || !c.url) return;
+      clipUrl = c.url;
+      $('clipSchool').textContent = c.school ? c.school + '에 연결할까요?' : '학교 주소를 찾았습니다';
+      $('clipUrl').textContent = c.url;
+      show('clip', 1);
+    });
+  }
+  $('clipGo').onclick = async function () { if (!clipUrl) return; $('clipGo').disabled = true; var r = await A.connectUrl(clipUrl); if (!r.ok) $('clipGo').disabled = false; };
+  window.addEventListener('focus', checkClip);
+  checkClip();
   A.info().then(function (i) {
     if (!i.googleReady) { $('goG').disabled = true; $('hint').disabled = true; $('noClient').style.display = ''; }
     if (i.previousUrl) { $('prevUrl').textContent = i.previousUrl; show('prev', 1); }

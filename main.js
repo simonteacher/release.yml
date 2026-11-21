@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell, dialog, ipcMain, net, protocol } = require('electron');
+const { app, BrowserWindow, Menu, shell, dialog, ipcMain, net, protocol, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -127,6 +127,14 @@ function setupIpc() {
     const c = gs.readConn(); c.mode = 'web'; c.webappUrl = m[0]; gs.writeConn(c);
     loadWeb(m[0]);
     return { ok: true };
+  });
+  // 복사해 둔 안내문에서 학교 주소와 학교 이름만 찾아 돌려줌 (설정 화면에서만, 다른 내용은 쓰지 않음)
+  ipcMain.handle('setup:clipboard', (e) => {
+    if (!fromSetup(e)) return null;
+    const t = String(clipboard.readText() || '').slice(0, 20000), m = t.match(URL_RE);
+    if (!m) return null;
+    const n = t.match(/\[([^\]\n]{2,40}?)\s*최소 성취수준 보장지도/);
+    return { url: m[0], school: n ? n[1].trim() : '' };
   });
   ipcMain.on('setup:useLocal', (e) => { if (!fromSetup(e)) return; const c = gs.readConn(); c.mode = 'local'; gs.writeConn(c); loadLocal(); });
   ipcMain.on('setup:usePrevious', (e) => {

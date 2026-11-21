@@ -30,6 +30,7 @@ if (location.protocol === 'file:' && /\/setup\.html$/.test(location.pathname)) {
     openWebapp: () => ipcRenderer.send('setup:openWebapp'),
     connectUrl: (u) => ipcRenderer.invoke('setup:connectUrl', String(u || '')),
     useLocal: () => ipcRenderer.send('setup:useLocal'),
+    clipboard: () => ipcRenderer.invoke('setup:clipboard'),
     usePrevious: () => ipcRenderer.send('setup:usePrevious'),
     onProgress: (cb) => ipcRenderer.on('setup:progress', (e, p) => cb(p))
   });
