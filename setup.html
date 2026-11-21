@@ -165,7 +165,8 @@ code { background: #f0f2f5; padding: 0 5px; border-radius: 4px; font-size: 12.5p
     if (r.ok) return;   // 프로그램이 웹앱을 엶
     setBusy(false);
     var cur = document.querySelector('li.run'); if (cur) cur.className = 'bad';
-    if (r.code === 'API_DISABLED') { show('boxApi', 1); return; }
+    if (r.code === 'API_DISABLED') { if (cur) cur.querySelector('.m').textContent = '아래 구글 설정 하나를 켜면 이어서 진행합니다.'; show('boxApi', 1); return; }
+    if (cur) cur.querySelector('.m').textContent = '여기서 멈췄습니다. 아래 안내를 확인해 주세요.';
     $('errMsg').textContent = r.message || '설정을 마치지 못했습니다.';
     $('errDetail').textContent = r.detail || ''; $('errDetail').style.display = r.detail ? '' : 'none';
     show('boxErr', 1);
