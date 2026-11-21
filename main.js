@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell, dialog, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, shell, dialog, ipcMain, net, protocol } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -6,11 +6,17 @@ const APP_TITLE = '최소 성취수준 보장지도 시스템';
 
 // 학교 웹앱(구글 시트) 주소. config.json의 webappUrl에 Apps Script 웹앱 주소(…/exec)를 넣으면
 // 프로그램이 그 웹앱을 열고, 비어 있으면 이 PC에 저장하는 방식으로 동작합니다.
+// 다른 학교용 프로그램은 config.generic.json을 쓰고, 처음 실행할 때 학교 연결 방법을 고릅니다.
+let CFG = {};
+for (const f of ['config.generic.json', 'config.json']) {
+  try { CFG = JSON.parse(fs.readFileSync(path.join(__dirname, f), 'utf8')) || {}; break; } catch (e) { /* 다음 파일 */ }
+}
+const GENERIC = CFG.edition === 'generic';
+const URL_RE = /https:\/\/script\.google\.com\/(?:a\/macros\/[^/\s]+|macros)\/s\/[A-Za-z0-9_-]+\/exec/;
 let WEBAPP_URL = '';
-try {
-  const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
-  if (/^https:\/\/script\.google\.com\/.+\/exec$/.test(String(cfg.webappUrl || '').trim())) WEBAPP_URL = cfg.webappUrl.trim();
-} catch (e) { /* 설정 파일이 없으면 PC 저장 방식 */ }
+if (!GENERIC && URL_RE.test(String(CFG.webappUrl || '').trim())) WEBAPP_URL = CFG.webappUrl.trim();
+const gs = GENERIC ? require('./gsetup') : null;
+const LOCAL_PAGE = fs.existsSync(path.join(__dirname, 'app.html')) ? 'app.html' : 'index.html';
 const isGoogle = (u) => /^https:\/\/([a-z0-9-]+\.)*(script\.google\.com|googleusercontent\.com|accounts\.google\.com|docs\.google\.com)(\/|$)/i.test(u);
 const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000; // 켜 둔 상태에서도 4시간마다 확인
 
@@ -89,6 +95,62 @@ ipcMain.on('print:preview', async (e, html) => {
   pv.loadFile(pdfPath);
 });
 
+// ── 처음 설정 화면 (다른 학교용) ───────────────────────────
+const fromSetup = (e) => /\/setup\.html$/.test(new URL(e.senderFrame.url).pathname);
+function setupIpc() {
+  const googleReady = () => !!(CFG.googleClientId && gs.hasServerFiles());
+  ipcMain.handle('setup:info', (e) => {
+    if (!fromSetup(e)) return {};
+    const c = gs.readConn(), s = c.setup || {};
+    return { googleReady: googleReady(), previousUrl: (c.webappUrl && URL_RE.test(c.webappUrl)) ? c.webappUrl : (s.webappUrl || ''), email: s.email || '' };
+  });
+  ipcMain.handle('setup:google', async (e, o) => {
+    if (!fromSetup(e) || !googleReady()) return { ok: false, message: '이 프로그램에서는 구글 설정을 쓸 수 없습니다.' };
+    if (o && o.relogin) gs.forgetGoogle();
+    try {
+      const r = await gs.runSetup(CFG, { hint: String(o && o.hint || '').slice(0, 200), relogin: !!(o && o.relogin) },
+        (step, state, msg) => { if (!e.sender.isDestroyed()) e.sender.send('setup:progress', { step, state, msg }); });
+      setTimeout(() => loadWeb(r.webappUrl), 900);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, code: err.code || 'ERR', message: err.message || String(err), detail: err.code && /^HTTP_|NETWORK|DEPLOY|CLOUD/.test(err.code) ? String(err.detail || '').slice(0, 400) : '' };
+    }
+  });
+  ipcMain.on('setup:cancelLogin', (e) => { if (fromSetup(e)) gs.cancelLogin(); });
+  ipcMain.on('setup:skipConsent', (e) => { if (fromSetup(e)) gs.skipConsent(); });
+  ipcMain.on('setup:openApiSettings', (e) => { if (fromSetup(e)) shell.openExternal(gs.EP.userSettings); });
+  ipcMain.on('setup:openWebapp', (e) => { const s = gs.readConn().setup || {}; if (fromSetup(e) && s.webappUrl) shell.openExternal(s.webappUrl); });
+  ipcMain.handle('setup:connectUrl', (e, text) => {
+    if (!fromSetup(e)) return { ok: false };
+    const m = String(text).match(URL_RE);
+    if (!m) return { ok: false, message: '학교 주소를 찾지 못했습니다. https://script.google.com/ 으로 시작하고 /exec 로 끝나는 주소를 붙여넣어 주세요.' };
+    const c = gs.readConn(); c.mode = 'web'; c.webappUrl = m[0]; gs.writeConn(c);
+    loadWeb(m[0]);
+    return { ok: true };
+  });
+  ipcMain.on('setup:useLocal', (e) => { if (!fromSetup(e)) return; const c = gs.readConn(); c.mode = 'local'; gs.writeConn(c); loadLocal(); });
+  ipcMain.on('setup:usePrevious', (e) => {
+    if (!fromSetup(e)) return;
+    const c = gs.readConn(), u = (c.webappUrl && URL_RE.test(c.webappUrl)) ? c.webappUrl : (c.setup && c.setup.webappUrl);
+    if (!u) return; c.mode = 'web'; c.webappUrl = u; gs.writeConn(c); loadWeb(u);
+  });
+}
+function openSetup() {
+  if (!win) return;
+  const r = dialog.showMessageBoxSync(win, { type: 'question', buttons: ['설정 화면 열기', '취소'], defaultId: 0, cancelId: 1, noLink: true,
+    title: '학교 연결 설정', message: '학교 연결 설정 화면을 열까요?',
+    detail: '구글 계정으로 학교 설정, 학교 주소 연결, 이 PC에서만 쓰기 중에서 다시 고를 수 있습니다.' + (WEBAPP_URL ? '\n입력한 내용은 이미 학교 구글 시트에 저장되어 있습니다.' : '') });
+  if (r === 0) loadSetup();
+}
+// 관리자 PC: 프로그램이 업데이트되면 학교 서버 코드도 바꿈
+async function updateServerCode() {
+  try {
+    const r = await gs.autoUpdateServer(CFG);
+    if (r && r.updated && win && !win.isDestroyed()) win.setTitle(`${APP_TITLE} — 학교 서버를 ${r.version} 버전으로 업데이트했습니다`);
+    if (r && r.updated) setTimeout(() => { if (win && !win.isDestroyed()) win.setTitle(APP_TITLE); }, 8000);
+  } catch (e) { /* 다음 실행 때 다시 시도 */ }
+}
+
 // ── 중복 실행 방지 ─────────────────────────────────────────
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -106,6 +168,7 @@ function setupUpdater() {
     autoUpdater = require('electron-updater').autoUpdater;
   } catch (e) { return; }
 
+  if (CFG.updateChannel) autoUpdater.channel = CFG.updateChannel;   // 다른 학교용은 별도 업데이트 채널
   autoUpdater.autoDownload = false;          // 다운로드 전에 먼저 물어봄
   autoUpdater.autoInstallOnAppQuit = true;   // 받아 두면 다음 종료 때 자동 설치
 
@@ -211,7 +274,31 @@ function create() {
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') }
   });
   win.once('ready-to-show', () => { win.maximize(); win.show(); });
-  if (WEBAPP_URL) {
+  // 인터넷이 끊겼을 때 안내 화면
+  win.webContents.on('did-fail-load', (e, code, desc, url, isMainFrame) => {
+    if (!isMainFrame || code === -3 || !WEBAPP_URL || !isGoogle(url)) return;
+    const html = '<meta charset="utf-8"><body style="font-family:Malgun Gothic,sans-serif;display:flex;align-items:center;justify-content:center;height:90vh;background:#f4f5f7;color:#1c2433">' +
+      '<div style="text-align:center;line-height:1.8"><div style="font-size:20px;font-weight:700">학교 서버에 연결하지 못했습니다</div>' +
+      '<div style="color:#667085">인터넷 연결을 확인한 뒤 다시 시도해 주세요.' + (GENERIC ? '<br>주소를 바꾸려면 위쪽 메뉴 [파일] → [학교 연결 설정]을 누르세요.' : '') + '</div>' +
+      '<button onclick="location.href=\'' + WEBAPP_URL + '\'" style="margin-top:14px;padding:10px 20px;border:0;border-radius:8px;background:#5b3d99;color:#fff;font-size:15px;cursor:pointer">다시 시도</button></div></body>';
+    win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+  });
+  if (GENERIC) {
+    const c = gs.readConn();
+    if (c.mode === 'web' && URL_RE.test(c.webappUrl || '')) loadWeb(c.webappUrl);
+    else if (c.mode === 'local') loadLocal();
+    else loadSetup();
+  } else if (WEBAPP_URL) loadWeb(WEBAPP_URL);
+  else loadLocal();
+  win.on('page-title-updated', (e) => e.preventDefault());
+  wireWindow();
+}
+
+function loadSetup() { WEBAPP_URL = ''; win.loadFile(path.join(__dirname, 'setup.html')); }
+function loadLocal() { WEBAPP_URL = ''; win.loadFile(path.join(__dirname, LOCAL_PAGE)); }
+function loadWeb(url) {
+  WEBAPP_URL = url;
+  {
     // 웹앱이 뜨기 전까지 빈 창 대신 안내 화면을 보여 주고, 곧바로 웹앱으로 넘어감
     const splash = '<meta charset="utf-8"><style>@keyframes s{to{transform:rotate(360deg)}}</style>' +
       '<body style="margin:0;font-family:Malgun Gothic,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#f4f5f7;color:#1c2433">' +
@@ -220,20 +307,10 @@ function create() {
       '<div style="color:#667085;margin-top:6px;font-size:13px">처음 열 때는 몇 초 걸릴 수 있습니다.</div></div>' +
       '<script>setTimeout(function(){ location.replace(' + JSON.stringify(WEBAPP_URL) + '); }, 50)</script></body>';
     win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(splash));
-    // 인터넷이 끊겼을 때 안내 화면
-    win.webContents.on('did-fail-load', (e, code, desc, url, isMainFrame) => {
-      if (!isMainFrame || code === -3) return;
-      const html = '<meta charset="utf-8"><body style="font-family:Malgun Gothic,sans-serif;display:flex;align-items:center;justify-content:center;height:90vh;background:#f4f5f7;color:#1c2433">' +
-        '<div style="text-align:center;line-height:1.8"><div style="font-size:20px;font-weight:700">학교 서버에 연결하지 못했습니다</div>' +
-        '<div style="color:#667085">인터넷 연결을 확인한 뒤 다시 시도해 주세요.</div>' +
-        '<button onclick="location.href=\'' + WEBAPP_URL + '\'" style="margin-top:14px;padding:10px 20px;border:0;border-radius:8px;background:#5b3d99;color:#fff;font-size:15px;cursor:pointer">다시 시도</button></div></body>';
-      win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
-    });
-  } else {
-    win.loadFile(path.join(__dirname, 'index.html'));
   }
-  win.on('page-title-updated', (e) => e.preventDefault());
+}
 
+function wireWindow() {
   // 외부 링크는 기본 브라우저로
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:/i.test(url)) shell.openExternal(url);
@@ -265,6 +342,7 @@ function create() {
 
 Menu.setApplicationMenu(Menu.buildFromTemplate([
   { label: '파일', submenu: [
+    ...(GENERIC ? [{ label: '학교 연결 설정…', click: openSetup }, { type: 'separator' }] : []),
     { label: '데이터 폴더 열기', click: () => { fs.mkdirSync(dataDir(), { recursive: true }); shell.openPath(app.getPath('userData')); } },
     { role: 'reload', label: '새로고침' },
     { type: 'separator' },
@@ -284,5 +362,17 @@ Menu.setApplicationMenu(Menu.buildFromTemplate([
   ] }
 ]));
 
-app.whenReady().then(() => { dailyBackup(); create(); setupUpdater(); });
+// 시험용: 모의 구글 서버로 보내기 (개발 실행 + 환경변수가 있을 때만)
+const MOCK = !app.isPackaged && process.env.ISU_GOOGLE_MOCK ? process.env.ISU_GOOGLE_MOCK.replace(/\/$/, '') : '';
+app.whenReady().then(() => {
+  if (MOCK) protocol.handle('https', async (rq) => {
+    const u = new URL(rq.url);
+    if (u.hostname !== 'script.google.com') return net.fetch(rq, { bypassCustomProtocolHandlers: true });
+    const r = await net.fetch(MOCK + '/webapp' + u.pathname + u.search, { bypassCustomProtocolHandlers: true });
+    return new Response(await r.arrayBuffer(), { status: r.status, headers: { 'content-type': r.headers.get('content-type') || 'text/html' } });
+  });
+  if (GENERIC) setupIpc();
+  dailyBackup(); create(); setupUpdater();
+  if (GENERIC) setTimeout(updateServerCode, 5000);
+});
 app.on('window-all-closed', () => app.quit());

@@ -18,3 +18,19 @@ window.addEventListener('message', (e) => {
   if (d.__isuPrint === 'ping' && e.source) e.source.postMessage({ __isuPrint: 'pong' }, e.origin);
   else if (d.__isuPrint === 'job' && typeof d.html === 'string') ipcRenderer.send('print:preview', d.html);
 });
+
+// 처음 설정 화면(setup.html)에서만 쓰는 기능 (다른 학교용 프로그램)
+if (location.protocol === 'file:' && /\/setup\.html$/.test(location.pathname)) {
+  contextBridge.exposeInMainWorld('isuSetup', {
+    info: () => ipcRenderer.invoke('setup:info'),
+    google: (o) => ipcRenderer.invoke('setup:google', o || {}),
+    cancelLogin: () => ipcRenderer.send('setup:cancelLogin'),
+    skipConsent: () => ipcRenderer.send('setup:skipConsent'),
+    openApiSettings: () => ipcRenderer.send('setup:openApiSettings'),
+    openWebapp: () => ipcRenderer.send('setup:openWebapp'),
+    connectUrl: (u) => ipcRenderer.invoke('setup:connectUrl', String(u || '')),
+    useLocal: () => ipcRenderer.send('setup:useLocal'),
+    usePrevious: () => ipcRenderer.send('setup:usePrevious'),
+    onProgress: (cb) => ipcRenderer.on('setup:progress', (e, p) => cb(p))
+  });
+}

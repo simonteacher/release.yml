@@ -1,2 +1,5 @@
 node_modules/
 dist/
+dist-generic/
+webapp/배포판/app.html
+build/generic.config.json

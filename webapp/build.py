@@ -41,3 +41,10 @@ for name, body in (('Index.html', gen), ('Code.gs', (root / 'webapp' / 'Code.gs'
     if not f.exists() or f.read_text(encoding='utf-8') != body:
         f.write_text(body, encoding='utf-8'); changed.append(name)
 print('배포판', changed or 'unchanged')
+
+# ── 다른 학교용 PC 프로그램의 ‘이 PC에서만 쓰기’ 화면 (학교 정보를 비운 index.html) ──
+# 커밋하지 않고 빌드할 때만 만듦(.gitignore)
+local = src.replace(m.group(0), "var SCHOOL_INFO = { name: '', url: '', dept: '교육과정부', phone: '', phoneBC: '', prevDate: '' };")
+assert local != src and not [w for w in ('광주', '경신', 'gshin', '605-4815') if w in local]
+(gdir / 'app.html').write_text(local, encoding='utf-8')
+print('app.html', len(local))

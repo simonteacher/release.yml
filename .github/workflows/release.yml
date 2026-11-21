@@ -15,6 +15,13 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'build/**'
+      - 'gsetup.js'
+      - 'setup.html'
+      - 'config.generic.json'
+      - 'tools/**'
+      - 'webapp/Code.gs'
+      - 'webapp/build.py'
+      - 'webapp/appsscript.json'
   workflow_dispatch:
     inputs:
       notes:
@@ -63,8 +70,31 @@ jobs:
             | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > build/release-notes.md
           cat build/release-notes.md
 
-      - name: 빌드 및 Release 발행
+      - name: 다른 학교용 웹앱 파일 만들기
+        shell: bash
+        env:
+          PYTHONUTF8: '1'
+        run: python webapp/build.py && node tools/make-generic-config.js
+
+      - name: 빌드 (우리 학교용)
+        shell: bash
+        run: npx electron-builder --win --publish never -c.win.signAndEditExecutable=true
+
+      - name: 빌드 (다른 학교용 — 처음 실행 때 학교 연결 설정)
+        shell: bash
+        run: npx electron-builder --win --publish never --config build/generic.config.json
+
+      - name: Release 발행
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --win --publish always -c.win.signAndEditExecutable=true
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          ls -la dist dist-generic
+          # 다른 학교용 업데이트 정보 파일은 generic.yml (우리 학교용 latest.yml과 분리)
+          if [ ! -f dist-generic/generic.yml ] && [ -f dist-generic/latest.yml ]; then mv dist-generic/latest.yml dist-generic/generic.yml; fi
+          test -f dist/latest.yml && test -f dist-generic/generic.yml
+          test -f "dist/AchievementGuidance-Setup-$V.exe" && test -f dist-generic/ISU-Manager-Setup.exe
+          gh release create "v$V" --title "$V" --notes-file build/release-notes.md \
+            "dist/AchievementGuidance-Setup-$V.exe" "dist/AchievementGuidance-Setup-$V.exe.blockmap" dist/latest.yml \
+            dist-generic/ISU-Manager-Setup.exe dist-generic/ISU-Manager-Setup.exe.blockmap dist-generic/generic.yml
